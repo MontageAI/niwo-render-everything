@@ -28,8 +28,10 @@ MAX_TITLE_CHARS = 120
 MAX_SCRIPT_CHARS = 6000
 MAX_NOTES_CHARS = 2000
 MAX_HEADLINE_LINES = 3
-MAX_HEADLINE_LINE_CHARS = 14
-WARN_HEADLINE_LINE_CHARS = 12
+# 标题带的容量是宽度而非字数：中日韩字符占满一个字宽，英文数字只占 0.56。
+NARROW_CHAR_WIDTH = 0.56
+MAX_HEADLINE_LINE_WIDTH = 14.0
+WARN_HEADLINE_LINE_WIDTH = 12.0
 MAX_HIGHLIGHTS_PER_LINE = 2
 MAX_SUMMARY_CHARS = 240
 MAX_TAG_CHARS = 32
@@ -38,7 +40,11 @@ MAX_ENTRIES = 200
 MAX_IMAGE_BYTES = 25 * 1024 * 1024
 MAX_VIDEO_BYTES = 512 * 1024 * 1024
 
-ASPECT_RATIOS = ("9:16", "16:9", "1:1")
+VIDEO_FORMATS = ("landscape", "portrait", "portrait_editorial")
+# 改名前 video_format 叫 aspect_ratio、取值写成画面比例，旧素材包仍可通过校验。
+LEGACY_VIDEO_FORMATS = {"16:9": "landscape", "9:16": "portrait"}
+# 只有竖屏信息版有钩子标题带，其余形态写了也不会出现在画面上。
+HOOK_HEADLINE_FORMAT = "portrait_editorial"
 IMAGE_EXTENSIONS = frozenset({".jpg", ".jpeg", ".png", ".webp", ".gif"})
 VIDEO_EXTENSIONS = frozenset({".mp4", ".mov", ".mkv", ".webm"})
 
@@ -47,6 +53,7 @@ CONTENT_KEYS = frozenset(
         "schema_version",
         "title",
         "script",
+        "video_format",
         "aspect_ratio",
         "hook_headline",
         "pronunciations",
@@ -166,9 +173,10 @@ def check_pronunciations(value: Any, report: Report) -> None:
             )
 
 
-def _visible_headline_length(line: str) -> int:
-    """按去掉 [[ ]] 标记后的可见字数计算标题行长度。"""
-    return len(HEADLINE_HIGHLIGHT_PATTERN.sub(r"\1", line))
+def _headline_display_width(line: str) -> float:
+    """按去掉 [[ ]] 标记后的可见文字估算标题行宽度，单位为一个中文字宽。"""
+    visible = HEADLINE_HIGHLIGHT_PATTERN.sub(r"\1", line)
+    return sum(1.0 if ord(char) > 0x2E80 else NARROW_CHAR_WIDTH for char in visible)
 
 
 def _count_headline_highlights(line: str) -> int:
@@ -222,21 +230,56 @@ def check_hook_headline(value: Any, report: Report) -> None:
             )
         total_highlights += highlights
 
-        visible_len = _visible_headline_length(line)
-        if visible_len > MAX_HEADLINE_LINE_CHARS:
+        width = _headline_display_width(line)
+        if width > MAX_HEADLINE_LINE_WIDTH:
             report.error(
-                f"{label} 可见字数 {visible_len} 超过上限 {MAX_HEADLINE_LINE_CHARS}"
+                f"{label} 折合 {width:.1f} 个中文字宽，超过上限 "
+                f"{MAX_HEADLINE_LINE_WIDTH:g}（英文与数字按半个字算）"
             )
-        elif visible_len > WARN_HEADLINE_LINE_CHARS:
+        elif width > WARN_HEADLINE_LINE_WIDTH:
             report.warn(
-                f"{label} 可见字数 {visible_len} 超过建议的 {WARN_HEADLINE_LINE_CHARS} 字，"
-                "9:16 顶部可能放不下"
+                f"{label} 折合 {width:.1f} 个中文字宽，超过建议的 "
+                f"{WARN_HEADLINE_LINE_WIDTH:g} 字，顶部标题带可能放不下"
             )
 
     if total_highlights == 0:
         report.warn(
             "hook_headline 没有任何 [[ ]] 高亮，会退化成普通标题"
         )
+
+
+def resolve_video_format(content: dict[str, Any], report: Report) -> str | None:
+    """校验成片形态并返回规范化取值。
+
+    Args:
+        content: content.json 的原始字典。
+        report: 收集错误与告警的报告对象。
+
+    Returns:
+        str | None: 规范化后的形态；未声明或取值非法时返回空。
+    """
+    declared = content.get("video_format")
+    legacy = content.get("aspect_ratio")
+    if declared is not None and legacy is not None:
+        report.error("video_format 与旧字段 aspect_ratio 不能同时声明")
+        return None
+    if declared is None and legacy is None:
+        return None
+    if declared is None:
+        report.warn("aspect_ratio 是改名前的旧字段，请改写成 video_format")
+        mapped = LEGACY_VIDEO_FORMATS.get(legacy)
+        if mapped is None:
+            report.error(
+                f"aspect_ratio {legacy!r} 已不再支持，"
+                f"请改用 video_format: {' / '.join(VIDEO_FORMATS)}"
+            )
+        return mapped
+    if declared not in VIDEO_FORMATS:
+        report.error(
+            f"video_format {declared!r} 不合法，只能是 {' / '.join(VIDEO_FORMATS)}"
+        )
+        return None
+    return declared
 
 
 def validate_content(content: dict[str, Any], report: Report) -> None:
@@ -275,17 +318,22 @@ def validate_content(content: dict[str, Any], report: Report) -> None:
         if re.search(r"[\U0001f300-\U0001faff\u2600-\u27bf]", script):
             report.warn("script 含 emoji，配音会把它读出来或跳过，建议删掉")
 
-    aspect = content.get("aspect_ratio")
-    if aspect is not None and aspect not in ASPECT_RATIOS:
-        report.error(
-            f"aspect_ratio {aspect!r} 不合法，只能是 {' / '.join(ASPECT_RATIOS)}"
-        )
+    video_format = resolve_video_format(content, report)
 
     if "pronunciations" in content:
         check_pronunciations(content["pronunciations"], report)
 
     if "hook_headline" in content:
         check_hook_headline(content["hook_headline"], report)
+        if video_format is not None and video_format != HOOK_HEADLINE_FORMAT:
+            report.warn(
+                f"video_format 是 {video_format!r}，没有钩子标题带，"
+                "hook_headline 不会出现在画面上"
+            )
+    elif video_format == HOOK_HEADLINE_FORMAT:
+        report.warn(
+            "竖屏信息版顶部有一条专用标题带，缺少 hook_headline 会留一块空白"
+        )
 
     notes = content.get("notes")
     if isinstance(notes, str) and len(notes) > MAX_NOTES_CHARS:
