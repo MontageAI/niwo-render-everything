@@ -22,10 +22,15 @@ CONTENT_SCHEMA_VERSION = 1
 MANIFEST_SCHEMA_VERSION = 1
 
 PINYIN_PATTERN = re.compile(r"^[a-z]+[1-5]$")
+HEADLINE_HIGHLIGHT_PATTERN = re.compile(r"\[\[([^\[\]]+)\]\]")
 
 MAX_TITLE_CHARS = 120
 MAX_SCRIPT_CHARS = 6000
 MAX_NOTES_CHARS = 2000
+MAX_HEADLINE_LINES = 3
+MAX_HEADLINE_LINE_CHARS = 14
+WARN_HEADLINE_LINE_CHARS = 12
+MAX_HIGHLIGHTS_PER_LINE = 2
 MAX_SUMMARY_CHARS = 240
 MAX_TAG_CHARS = 32
 MAX_TAGS = 8
@@ -43,6 +48,7 @@ CONTENT_KEYS = frozenset(
         "title",
         "script",
         "aspect_ratio",
+        "hook_headline",
         "pronunciations",
         "notes",
     }
@@ -160,6 +166,79 @@ def check_pronunciations(value: Any, report: Report) -> None:
             )
 
 
+def _visible_headline_length(line: str) -> int:
+    """按去掉 [[ ]] 标记后的可见字数计算标题行长度。"""
+    return len(HEADLINE_HIGHLIGHT_PATTERN.sub(r"\1", line))
+
+
+def _count_headline_highlights(line: str) -> int:
+    """统计一行里合法 [[...]] 高亮标记的数量。"""
+    return len(HEADLINE_HIGHLIGHT_PATTERN.findall(line))
+
+
+def check_hook_headline(value: Any, report: Report) -> None:
+    """校验顶部钩子大标题的行数、高亮标记与单行长度。"""
+    if not isinstance(value, dict):
+        report.error("hook_headline 必须是对象")
+        return
+    for key in sorted(set(value) - {"lines"}):
+        report.error(f"hook_headline 出现未知字段 {key!r}")
+    lines = value.get("lines")
+    if not isinstance(lines, list):
+        report.error("hook_headline.lines 必须是数组")
+        return
+    if not lines:
+        report.error("hook_headline.lines 不能为空，至少需要 1 行")
+        return
+    if len(lines) > MAX_HEADLINE_LINES:
+        report.error(
+            f"hook_headline.lines 有 {len(lines)} 行，超过上限 {MAX_HEADLINE_LINES}"
+        )
+        return
+
+    total_highlights = 0
+    for index, line in enumerate(lines):
+        label = f"hook_headline.lines[{index}]"
+        if not isinstance(line, str):
+            report.error(f"{label} 必须是字符串")
+            continue
+        if not line.strip():
+            report.error(f"{label} 不能为空")
+            continue
+        if "\n" in line:
+            report.error(f"{label} 不能包含换行符")
+            continue
+
+        highlights = _count_headline_highlights(line)
+        remaining = HEADLINE_HIGHLIGHT_PATTERN.sub("", line)
+        if "[[" in remaining or "]]" in remaining:
+            report.error(
+                f"{label} 的高亮标记不成对、嵌套或内容为空: {line!r}"
+            )
+            continue
+        if highlights > MAX_HIGHLIGHTS_PER_LINE:
+            report.error(
+                f"{label} 有 {highlights} 处高亮，超过每行上限 {MAX_HIGHLIGHTS_PER_LINE}"
+            )
+        total_highlights += highlights
+
+        visible_len = _visible_headline_length(line)
+        if visible_len > MAX_HEADLINE_LINE_CHARS:
+            report.error(
+                f"{label} 可见字数 {visible_len} 超过上限 {MAX_HEADLINE_LINE_CHARS}"
+            )
+        elif visible_len > WARN_HEADLINE_LINE_CHARS:
+            report.warn(
+                f"{label} 可见字数 {visible_len} 超过建议的 {WARN_HEADLINE_LINE_CHARS} 字，"
+                "9:16 顶部可能放不下"
+            )
+
+    if total_highlights == 0:
+        report.warn(
+            "hook_headline 没有任何 [[ ]] 高亮，会退化成普通标题"
+        )
+
+
 def validate_content(content: dict[str, Any], report: Report) -> None:
     """校验 content.json 的字段取值。"""
     for key in sorted(set(content) - CONTENT_KEYS):
@@ -204,6 +283,9 @@ def validate_content(content: dict[str, Any], report: Report) -> None:
 
     if "pronunciations" in content:
         check_pronunciations(content["pronunciations"], report)
+
+    if "hook_headline" in content:
+        check_hook_headline(content["hook_headline"], report)
 
     notes = content.get("notes")
     if isinstance(notes, str) and len(notes) > MAX_NOTES_CHARS:

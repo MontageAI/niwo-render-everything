@@ -45,7 +45,7 @@ Agent 会先问你成片方向（竖屏、横屏还是方形）、目标时长�
 ## 产出物
 
 ```
-content.json     # 文案、画幅、多音字注音
+content.json     # 文案、画幅、钩子标题、多音字注音
 manifest.json    # 每个素材的画面说明、标签、来源、选段
 images/
 videos/
