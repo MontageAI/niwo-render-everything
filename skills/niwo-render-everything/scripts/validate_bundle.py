@@ -78,6 +78,7 @@ RENDER_PARAM_KEYS = frozenset(
         "voice_id",
         "speed",
         "show_subtitles",
+        "show_chapter_progress",
         "character",
         "shared_template",
         "enable_tikhub",
