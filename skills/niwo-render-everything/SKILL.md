@@ -1,0 +1,205 @@
+---
+name: niwo-render-everything
+description: Build a Niwo short-video asset bundle from a conversation. Finalize the narration script with the user, download real images and B-roll footage from the web, trim clips with ffmpeg, write content.json and manifest.json, then deliver a zip the user uploads to Niwo for rendering. Requires downloading files to local disk, shell access with ffmpeg and ffprobe, and zip. Use when the user wants to turn a topic, news story, or finished script into a short video, or asks to gather footage and stills to match a narration.
+---
+
+# Niwo 短视频素材包
+
+把和用户聊过的内容，整理成一个可以直接上传到 Niwo 渲染成片的「素材包」。
+
+## 先确认你能不能做
+
+这个任务需要以下三项能力，缺任何一项都要立刻告诉用户，不要硬着头皮往下做：
+
+1. 能联网访问网页并**下载图片、视频文件到本地**（不是只给链接）。
+2. 能执行 shell 命令，环境里有 `ffmpeg` 和 `ffprobe`。
+3. 能把本地目录打包成 zip 并把文件交付给用户。
+
+如果你只能上网搜索、不能下载文件（例如大多数手机端 AI 助手），直接说明，让用户换一个工具。
+
+## 工作流
+
+1. 按「第零步」把成片方向和文案要求问清楚。
+2. 定稿口播文案。
+3. 下载图片与 B-roll 视频。
+4. 给每段视频定好用哪几秒。
+5. 写 `manifest.json` 前先读 `references/manifest-schema.md`。
+6. 写 `content.json` 前先读 `references/content-schema.md`。
+7. 跑 `scripts/validate_bundle.py` 自校验，通过后再打包。
+
+## 交付物
+
+一个 zip，解压后结构如下：
+
+```
+content.json
+manifest.json
+images/
+  01-xxx.jpg
+  02-xxx.png
+videos/
+  01-xxx.mp4
+```
+
+`images/` 和 `videos/` 的文件名随意，但必须与 `manifest.json` 里的 `file` 字段一致。
+
+你只负责**内容**：文案、成片方向、素材、多音字读音。音色、语速、字幕开关、IP 形象、背景音乐这些渲染参数由用户在 Niwo 里渲染前自己选，不要写进 `content.json`。
+
+## 第零步：开工前先确认几件事
+
+动手找素材、写文案之前，先把下面该问的问清楚。不要默默替用户决定。
+
+**怎么问：** 如果你有能列选项、让用户点选的提问工具（不同产品叫法不同，例如 `ask` / `ask_question` / `AskUserQuestion`），优先用它；没有就直接在对话里把选项列成文字。
+
+**一次问完**该问的问题，不要一轮只挤一个；用户明确说「你定」之后，你再自己拍板，并告知用了什么默认值。
+
+### 必问：成片方向
+
+哪怕口播文案已经定稿，这一项也要单独问一次：
+
+- 竖屏 `9:16`（默认）
+- 横屏 `16:9`
+- 方形 `1:1`
+
+用户没回答、或让你自己定，就按竖屏 `9:16`。确认结果要原样写进 `content.json` 的 `aspect_ratio`。
+
+### 文案还没定稿时，一并问这些
+
+- 目标时长大概多长（字数怎么换算见下面「时长与字数」）
+- 讲给谁看
+- 什么风格口吻
+- 哪些信息点必须讲到
+
+可以先给一版文案草稿，用户改完并明确说「就这版」之后再继续找素材。
+
+## 第一步：确认口播文案
+
+`content.json` 里的 `script` 是一段**定稿的口播文案**：它会被逐字朗读成配音、逐字显示成字幕，Niwo 不会再改写、润色或增删一个字。所以在动手找素材之前，先把文案定下来。
+
+- 如果对话里已经有一份用户确认过的定稿，直接用它。
+- 如果还没定稿，先别自己拍板。按第零步把时长、受众、风格、必讲信息点问清楚；可以先给一版草稿，用户改完并明确说「就这版」之后再继续。
+- 文案该怎么写、什么风格更好，按你和用户聊出来的结论来，这份 skill 不替你决定。
+
+唯一的硬要求：最终放进 `script` 的必须是能直接逐字朗读的成品正文，不要标题、分段小标、镜头说明、emoji 或者括号里的舞台提示。
+
+### 时长与字数
+
+成片时长完全由配音朗读 `script` 的实际长度决定，没有别的旋钮：Niwo 不会为了凑时长增删一个字，也不会拉长或压缩画面来对齐目标秒数。所以**字数写多少，片子就多长**。
+
+中文口播原速约**每秒 6 字**，按这个速率换算目标时长：
+
+- 30 秒 ≈ 180 字
+- 1 分钟 ≈ 360 到 380 字
+- 1 分半 ≈ 540 字
+
+### 多音字读音
+
+文案定稿后，扫一遍里面的多音字，把配音容易读错的写进 `content.json` 的 `pronunciations`。比如「调用量」的「调」该读 diào，配音默认会读成 tiáo。写法见 `references/content-schema.md`。
+
+只标真正会读错的那个字，标得越少配音的语气越自然，字幕时间戳也越准，所以别整句都注音。
+
+## 第二步：收集素材
+
+需要两类素材。
+
+### B-roll 视频素材
+
+直接从网络、公开素材网站或相关网页中搜索并下载真实视频。可以包括人物、场景、产品操作、平台使用、行业画面、新闻现场，以及抽象概念对应的实拍。
+
+### 网络图片素材
+
+通过 Bing、百度等图片搜索引擎，寻找与文案内容直接相关的真实网络图片。优先收集：
+
+- 相关产品、公司和人物图片
+- App 真实界面与历史版本截图
+- 新闻报道配图
+- 行业报告与数据图表
+- 产品对比图
+- 活动、事件和历史资料图片
+- Logo、宣传图和媒体资料图
+- 能准确表达文案概念的网络照片或插图
+
+### 明确不要的素材
+
+- 不要原创 Motion 动效
+- 不要用前端框架渲染概念动画
+- 不要把 B-roll 视频抽帧后当作图片素材
+- 不要用低信息量的占位图代替真实资料
+- 不要为了凑数量收集大量与文案只有弱关联的素材
+
+你交的素材就是成片的**全部画面来源**：导入素材包后，Niwo 不会再联网搜图或补空镜。所以素材要覆盖整篇文案，别让某一段找不到画面可配；同时也别为了凑数塞弱关联的东西，宁缺毋滥——真配不上时会退化成纯文字卡，那比配错画面好。
+
+一分钟到一分半的片子，通常 20 到 30 张图加 8 到 10 段视频就够。取材渠道和实际数量你自己判断。素材远超这个量时会沿 manifest 顺序均匀抽取，所以 manifest 的排列顺序最好跟着文案推进走。
+
+素材方向尽量和第零步确认的成片方向一致：
+
+- **视频**：方向不一致时，成片会按满屏裁切（`cover`）适配画布，主体靠边时容易被切掉。竖屏成片优先找竖屏视频，横屏成片优先找横屏视频。
+- **图片**：一律完整展示、不裁切；方向不一致时只是上下或左右多出模糊铺底，横竖屏混用问题不大。
+
+## 第三步：给每个视频定好用哪几秒
+
+成片里一个镜头只用几秒，所以别丢一段几十秒的原片过来就完事。两种做法任选：
+
+- **自己裁好**（推荐）：直接交裁完的短片段，一个文件就是一个镜头，8 到 12 秒最好用。宁可长一点：镜头时长由配音决定，最长可能到 9 秒，片段比镜头短时只能把它慢放补足，短得太多画面就会明显发滞。
+
+```bash
+ffmpeg -ss <起点秒> -to <终点秒> -i 原视频.mp4 \
+  -map 0:v:0 -c:v libx264 -pix_fmt yuv420p -preset veryfast -movflags +faststart \
+  videos/01-xxx.mp4
+```
+
+- **交原片并在 manifest 里标出选段**：写上 `clip_start_seconds` / `clip_end_seconds`，Niwo 按这个窗口裁。
+
+裁或者标之前，用 `ffprobe -v error -show_entries format=duration -of csv=p=0 原视频.mp4` 确认时长，别落在黑屏、片头台标或转场糊帧上，挑画面稳定、主体清晰的一段。
+
+有个坑要避开：如果你交的是长原片，manifest 里又写了 `summary` 和 `tags`、却没写选段时间，Niwo 会认为你已经挑好了，直接从第 0 秒开始取——大概率取到片头。要么裁好，要么把选段时间写上，要么干脆别写 `summary` 和 `tags`，让 Niwo 自己看片挑镜头。
+
+音轨和编码不用管：Niwo 会统一重编码成静音的 H.264 mp4，成片用自己的配音和 BGM。文件是常见的 mp4 / mov / mkv / webm 就行，带不带原声都无所谓。
+
+## 第四步：写 manifest.json
+
+读 `references/manifest-schema.md`，按里面的字段说明写。
+
+要点：`summary` 是单行中文、只描述画面里看得见的东西；`tags` 2 到 5 个中文短标签；已经裁好的视频不要写 `clip_start_seconds` / `clip_end_seconds`。
+
+## 第五步：写 content.json
+
+读 `references/content-schema.md`，按里面的模板写。
+
+只有 `title`、`script`、`aspect_ratio`、`pronunciations` 和 `notes` 这几项，全都是内容。这份 JSON 不接受任何未列出的字段，把渲染参数写进去会直接校验失败。
+
+## 第六步：自校验并打包
+
+打包前先跑自校验，它会检查字段、文件对应关系和视频选段窗口。脚本在这个 skill 目录的 `scripts/` 下，用绝对路径调用：
+
+```bash
+python3 <skill 目录>/scripts/validate_bundle.py <素材包目录>
+```
+
+有报错就改到通过为止，不要带着报错打包。如果你拿到的是一份复制粘贴的提示词、手上没有这个脚本，就按文末的自查清单逐项人工核对。校验通过后：
+
+```bash
+cd <素材包目录>
+zip -r ../bundle.zip content.json manifest.json images videos -x '.*' -x '__MACOSX/*'
+```
+
+zip 里不要放软链接，也不要放上面结构之外的其他文件。
+
+## 交付
+
+把 zip 交给用户，并告诉他上传到 Niwo 生成视频：
+
+<!-- TODO: 替换成正式的上传入口地址与产品名 -->
+
+上传前用户可以自己再筛一遍素材：不满意的直接删文件，想加的直接放进 `images/` 或 `videos/`——多出来的文件不写进 manifest 也能用，Niwo 会自动补描述。
+
+## 交付前自查
+
+- [ ] `scripts/validate_bundle.py` 跑通、无报错
+- [ ] `aspect_ratio` 与第零步确认的成片方向一致（未确认则为 `9:16`）
+- [ ] `script` 是用户确认过的定稿口播，逐字可读，没有标题和舞台提示
+- [ ] 每个素材都在 `manifest.json` 里有条目，`file` 路径与实际文件一一对应
+- [ ] 每个视频要么已经裁成几秒的短镜头，要么在 manifest 里标了选段时间
+- [ ] `summary` 都是单行中文，描述的是画面而不是含义
+- [ ] 素材都和文案有实打实的关联，没有占位图、没有抽帧图、没有渲染动画
+- [ ] `content.json` 里没有渲染参数，只有内容
