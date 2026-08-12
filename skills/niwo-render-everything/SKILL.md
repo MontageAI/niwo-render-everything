@@ -118,6 +118,22 @@ videos/
 
 写法与校验规则见 `references/content-schema.md` 的 `hook_headline` 小节。
 
+### 资料来源
+
+文案定稿后，把引用的公开资料名称写进 `content.json` 的 `sources`。它不进配音、不进字幕，只渲染为画面底部的小字。
+
+- 只写来源名称（公告名、媒体报道名等），不要写 URL，单条不超过 24 个中文字宽。
+- 不要写「资料来源：」前缀，也不要写免责声明，那些由 Niwo 固定生成。
+- 省略或空数组时底部不显示。
+
+示例：
+
+```json
+"sources": ["宇树科技招股书", "DeepSeek 官方公告", "新浪财经"]
+```
+
+写法与校验规则见 `references/content-schema.md` 的 `sources` 小节。
+
 ## 第二步：收集素材
 
 需要两类素材。
@@ -186,7 +202,7 @@ ffmpeg -ss <起点秒> -to <终点秒> -i 原视频.mp4 \
 
 读 `references/content-schema.md`，按里面的模板写。
 
-只有 `title`、`script`、`video_format`、`hook_headline`、`pronunciations` 和 `notes` 这几项，全都是内容。这份 JSON 不接受任何未列出的字段，把渲染参数写进去会直接校验失败。
+只有 `title`、`script`、`video_format`、`hook_headline`、`sources`、`pronunciations` 和 `notes` 这几项，全都是内容。这份 JSON 不接受任何未列出的字段，把渲染参数写进去会直接校验失败。
 
 ## 第六步：自校验并打包
 
@@ -224,3 +240,4 @@ zip 里不要放软链接，也不要放上面结构之外的其他文件。
 - [ ] 素材都和文案有实打实的关联，没有占位图、没有抽帧图、没有渲染动画
 - [ ] `content.json` 里没有渲染参数，只有内容
 - [ ] `hook_headline`（如有）为 1 到 3 行、每行 12 个中文字内（英文数字按半个字算）、至少一处 `[[ ]]` 高亮
+- [ ] `sources`（如有）只写来源名称，不写「资料来源：」前缀和免责声明

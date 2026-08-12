@@ -33,6 +33,7 @@ NARROW_CHAR_WIDTH = 0.56
 MAX_HEADLINE_LINE_WIDTH = 14.0
 WARN_HEADLINE_LINE_WIDTH = 12.0
 MAX_HIGHLIGHTS_PER_LINE = 2
+MAX_SOURCE_ENTRY_WIDTH = 24.0
 MAX_SUMMARY_CHARS = 240
 MAX_TAG_CHARS = 32
 MAX_TAGS = 8
@@ -56,6 +57,7 @@ CONTENT_KEYS = frozenset(
         "video_format",
         "aspect_ratio",
         "hook_headline",
+        "sources",
         "pronunciations",
         "notes",
     }
@@ -183,6 +185,44 @@ def _headline_display_width(line: str) -> float:
 def _count_headline_highlights(line: str) -> int:
     """统计一行里合法 [[...]] 高亮标记的数量。"""
     return len(HEADLINE_HIGHLIGHT_PATTERN.findall(line))
+
+
+def _display_width(text: str) -> float:
+    """按可见文字估算宽度，单位为一个中文字宽。"""
+    return sum(1.0 if ord(char) > 0x2E80 else NARROW_CHAR_WIDTH for char in text)
+
+
+def check_sources(value: Any, report: Report) -> None:
+    """校验资料来源列表的换行与单条宽度。"""
+    if not isinstance(value, list):
+        report.error("sources 必须是数组")
+        return
+    if not value:
+        return
+    seen: set[str] = set()
+    for index, entry in enumerate(value):
+        label = f"sources[{index}]"
+        if not isinstance(entry, str):
+            report.error(f"{label} 必须是字符串")
+            continue
+        collapsed = " ".join(entry.split()).strip()
+        if not collapsed:
+            report.warn(f"{label} 为空，已忽略")
+            continue
+        if collapsed in seen:
+            report.warn(f"{label} 与前面的条目重复，已忽略")
+            continue
+        if "\n" in entry:
+            report.error(f"{label} 不能包含换行符")
+            continue
+        width = _display_width(collapsed)
+        if width > MAX_SOURCE_ENTRY_WIDTH:
+            report.error(
+                f"{label} {collapsed!r} 折合 {width:.1f} 个中文字宽，"
+                f"超过上限 {MAX_SOURCE_ENTRY_WIDTH:g}"
+            )
+            continue
+        seen.add(collapsed)
 
 
 def check_hook_headline(value: Any, report: Report) -> None:
@@ -335,6 +375,9 @@ def validate_content(content: dict[str, Any], report: Report) -> None:
         report.warn(
             "竖屏信息版顶部有一条专用标题带，缺少 hook_headline 会留一块空白"
         )
+
+    if "sources" in content:
+        check_sources(content["sources"], report)
 
     notes = content.get("notes")
     if isinstance(notes, str) and len(notes) > MAX_NOTES_CHARS:
