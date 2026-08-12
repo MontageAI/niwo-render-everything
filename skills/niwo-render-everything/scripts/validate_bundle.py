@@ -41,11 +41,6 @@ MAX_ENTRIES = 200
 MAX_IMAGE_BYTES = 25 * 1024 * 1024
 MAX_VIDEO_BYTES = 512 * 1024 * 1024
 
-VIDEO_FORMATS = ("landscape", "portrait", "portrait_editorial")
-# 改名前 video_format 叫 aspect_ratio、取值写成画面比例，旧素材包仍可通过校验。
-LEGACY_VIDEO_FORMATS = {"16:9": "landscape", "9:16": "portrait"}
-# 只有竖屏信息版有钩子标题带，其余形态写了也不会出现在画面上。
-HOOK_HEADLINE_FORMAT = "portrait_editorial"
 IMAGE_EXTENSIONS = frozenset({".jpg", ".jpeg", ".png", ".webp", ".gif"})
 VIDEO_EXTENSIONS = frozenset({".mp4", ".mov", ".mkv", ".webm"})
 
@@ -54,8 +49,6 @@ CONTENT_KEYS = frozenset(
         "schema_version",
         "title",
         "script",
-        "video_format",
-        "aspect_ratio",
         "hook_headline",
         "sources",
         "pronunciations",
@@ -65,6 +58,9 @@ CONTENT_KEYS = frozenset(
 # 常见的误写：这些都是用户在 Niwo 里渲染前才决定的参数，属于 render.json 而不是内容协议。
 RENDER_PARAM_KEYS = frozenset(
     {
+        "video_format",
+        # 成片形态更早还叫 aspect_ratio，取值写成画面比例。
+        "aspect_ratio",
         "task_id",
         "user_id",
         "generation",
@@ -289,44 +285,15 @@ def check_hook_headline(value: Any, report: Report) -> None:
         )
 
 
-def resolve_video_format(content: dict[str, Any], report: Report) -> str | None:
-    """校验成片形态并返回规范化取值。
-
-    Args:
-        content: content.json 的原始字典。
-        report: 收集错误与告警的报告对象。
-
-    Returns:
-        str | None: 规范化后的形态；未声明或取值非法时返回空。
-    """
-    declared = content.get("video_format")
-    legacy = content.get("aspect_ratio")
-    if declared is not None and legacy is not None:
-        report.error("video_format 与旧字段 aspect_ratio 不能同时声明")
-        return None
-    if declared is None and legacy is None:
-        return None
-    if declared is None:
-        report.warn("aspect_ratio 是改名前的旧字段，请改写成 video_format")
-        mapped = LEGACY_VIDEO_FORMATS.get(legacy)
-        if mapped is None:
-            report.error(
-                f"aspect_ratio {legacy!r} 已不再支持，"
-                f"请改用 video_format: {' / '.join(VIDEO_FORMATS)}"
-            )
-        return mapped
-    if declared not in VIDEO_FORMATS:
-        report.error(
-            f"video_format {declared!r} 不合法，只能是 {' / '.join(VIDEO_FORMATS)}"
-        )
-        return None
-    return declared
-
-
 def validate_content(content: dict[str, Any], report: Report) -> None:
     """校验 content.json 的字段取值。"""
     for key in sorted(set(content) - CONTENT_KEYS):
-        if key in RENDER_PARAM_KEYS:
+        if key in ("video_format", "aspect_ratio"):
+            report.error(
+                f"content.json 不要写 {key!r}，成片形态由用户在 Niwo 渲染界面上选。"
+                "你只按确认过的取向收素材，并在 notes 里提醒用户选一致的形态"
+            )
+        elif key in RENDER_PARAM_KEYS:
             report.error(
                 f"content.json 不要写 {key!r}，它是渲染参数，"
                 "由用户在 Niwo 里渲染前自己选"
@@ -359,22 +326,11 @@ def validate_content(content: dict[str, Any], report: Report) -> None:
         if re.search(r"[\U0001f300-\U0001faff\u2600-\u27bf]", script):
             report.warn("script 含 emoji，配音会把它读出来或跳过，建议删掉")
 
-    video_format = resolve_video_format(content, report)
-
     if "pronunciations" in content:
         check_pronunciations(content["pronunciations"], report)
 
     if "hook_headline" in content:
         check_hook_headline(content["hook_headline"], report)
-        if video_format is not None and video_format != HOOK_HEADLINE_FORMAT:
-            report.warn(
-                f"video_format 是 {video_format!r}，没有钩子标题带，"
-                "hook_headline 不会出现在画面上"
-            )
-    elif video_format == HOOK_HEADLINE_FORMAT:
-        report.warn(
-            "竖屏信息版顶部有一条专用标题带，缺少 hook_headline 会留一块空白"
-        )
 
     if "sources" in content:
         check_sources(content["sources"], report)
