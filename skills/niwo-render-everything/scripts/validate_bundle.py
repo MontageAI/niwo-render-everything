@@ -82,6 +82,7 @@ RENDER_PARAM_KEYS = frozenset(
         "enable_tikhub",
         "enable_visual_review",
         "enable_asset_search",
+        "brand_bar",
     }
 )
 ENTRY_KEYS = frozenset(
