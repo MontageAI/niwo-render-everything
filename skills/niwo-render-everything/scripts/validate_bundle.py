@@ -64,6 +64,7 @@ RENDER_PARAM_KEYS = frozenset(
         "task_id",
         "user_id",
         "generation",
+        "theme",
         "tts",
         "bgm",
         "bgm_mood",
