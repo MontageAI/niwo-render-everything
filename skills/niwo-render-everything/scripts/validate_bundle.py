@@ -78,6 +78,8 @@ RENDER_PARAM_KEYS = frozenset(
         "speed",
         "show_subtitles",
         "show_chapter_progress",
+        "show_sources",
+        "disclaimer",
         "character",
         "shared_template",
         "enable_tikhub",
@@ -196,6 +198,10 @@ def check_sources(value: Any, report: Report) -> None:
         report.error("sources 必须是数组")
         return
     if not value:
+        report.warn(
+            "sources 是空数组，引用过公开资料就默认写上来源名称；"
+            "确实一条都没引用时可以忽略这条"
+        )
         return
     seen: set[str] = set()
     for index, entry in enumerate(value):
@@ -336,6 +342,11 @@ def validate_content(content: dict[str, Any], report: Report) -> None:
 
     if "sources" in content:
         check_sources(content["sources"], report)
+    else:
+        report.warn(
+            "content.json 没写 sources，引用过公开资料就默认带上来源名称；"
+            "确实一条都没引用时可以忽略这条"
+        )
 
     notes = content.get("notes")
     if isinstance(notes, str) and len(notes) > MAX_NOTES_CHARS:
