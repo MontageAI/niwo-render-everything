@@ -293,7 +293,7 @@ ffmpeg -ss <起点秒> -to <终点秒> -i 原视频.mp4 \
 
 读 `references/content-schema.md`，按里面的模板写。
 
-只有 `title`、`script`、`hook_headline`、`sources`、`pronunciations` 和 `notes` 这几项，全都是内容。这份 JSON 不接受任何未列出的字段，把渲染参数（包括成片形态）写进去会直接校验失败。
+只有 `schema_version`、`title`、`script`、`hook_headline`、`sources`、`pronunciations` 和 `notes` 这几项：`schema_version` 固定填 `1`，是必填的协议版本号，漏了会直接校验失败；其余全是内容。除这几项之外的字段一律不接受，把渲染参数（包括成片形态）写进去同样会校验失败。
 
 写之前再对一遍第零步确认的形态：竖屏信息版必须带上用户确认过的 `hook_headline`，竖屏视频与横屏视频必须没有这个字段。校验脚本不知道用户选了哪个形态，这一项对不上它查不出来，只能你自己核。
 
@@ -326,6 +326,7 @@ zip 里不要放软链接，也不要放上面结构之外的其他文件。
 
 - [ ] 开工前已把成片形态与文案要求一次问完，答案来自用户本次的回复，不是从记忆或历史偏好推断的；用了兜底默认值的已在回复里说明
 - [ ] `scripts/validate_bundle.py` 跑通、无报错
+- [ ] `content.json` 与 `manifest.json` 都写了 `"schema_version": 1`
 - [ ] 素材取向与第零步确认的成片形态一致，并在 `notes` 里提醒用户在 Niwo 里选同一个形态
 - [ ] `script` 是用户确认过的定稿口播，逐字可读，没有标题和舞台提示
 - [ ] 形态是竖屏信息版时 `hook_headline` 存在且用户确认过；是竖屏视频或横屏视频时没有这个字段
