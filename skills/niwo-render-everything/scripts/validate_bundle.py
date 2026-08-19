@@ -68,6 +68,7 @@ RENDER_PARAM_KEYS = frozenset(
         "tts",
         "bgm",
         "bgm_mood",
+        "sfx",
         "assets",
         "output",
         "model",
