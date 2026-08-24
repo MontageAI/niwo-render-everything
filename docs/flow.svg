@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 72" width="980" height="72" role="img" aria-label="û…¹0G„A">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8B5CF6"/>
+    </marker>
+  </defs>
+  <rect x="4" y="14" width="108" height="44" rx="10" fill="#F5F3FF" stroke="#8B5CF6" stroke-width="1.5"/>
+  <text x="58" y="41" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#1F2937">û…¹</text>
+  <line x1="116" y1="36" x2="144" y2="36" stroke="#8B5CF6" stroke-width="1.75" marker-end="url(#arrow)"/>
+  <rect x="148" y="14" width="168" height="44" rx="10" fill="#F5F3FF" stroke="#8B5CF6" stroke-width="1.5"/>
+  <text x="232" y="41" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#1F2937">ã­‡H + ž P</text>
+  <line x1="320" y1="36" x2="348" y2="36" stroke="#8B5CF6" stroke-width="1.75" marker-end="url(#arrow)"/>
+  <rect x="352" y="14" width="128" height="44" rx="10" fill="#F5F3FF" stroke="#8B5CF6" stroke-width="1.5"/>
+  <text x="416" y="41" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#1F2937">ffmpeg Á\4</text>
+  <line x1="484" y1="36" x2="512" y2="36" stroke="#8B5CF6" stroke-width="1.75" marker-end="url(#arrow)"/>
+  <rect x="516" y="14" width="112" height="44" rx="10" fill="#F5F3FF" stroke="#8B5CF6" stroke-width="1.5"/>
+  <text x="572" y="41" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#1F2937">zip  P</text>
+  <line x1="632" y1="36" x2="660" y2="36" stroke="#8B5CF6" stroke-width="1.75" marker-end="url(#arrow)"/>
+  <rect x="664" y="14" width="188" height="44" rx="10" fill="#F5F3FF" stroke="#8B5CF6" stroke-width="1.5"/>
+  <text x="758" y="41" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#1F2937">niwo.studio/video-studio</text>
+  <line x1="856" y1="36" x2="884" y2="36" stroke="#8B5CF6" stroke-width="1.75" marker-end="url(#arrow)"/>
+  <rect x="888" y="14" width="84" height="44" rx="10" fill="#8B5CF6"/>
+  <text x="930" y="41" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#FFFFFF">G</text>
+</svg>

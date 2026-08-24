@@ -29,14 +29,9 @@ PDF、论文、网页链接、Word，或你和 AI 正在聊的话题——只要
 | --- | --- | --- | --- |
 | 按成片形态写文案，竖屏信息版连钩子标题一起定 | 下载图片和 B-roll，不是只给链接 | 用 ffmpeg 定好每一段用哪几秒 | 把 zip 上传到 [视频工作台](https://niwo.studio/video-studio) 渲染 |
 
-```mermaid
-flowchart LR
-  A[任意内容] --> B[口播文案 + 真实素材]
-  B --> C[ffmpeg 裁镜头]
-  C --> D[zip 素材包]
-  D --> E["niwo.studio/video-studio"]
-  E --> F[成片]
-```
+<p align="center">
+  <img src="docs/flow.svg" alt="任意内容 → 口播文案与真实素材 → ffmpeg 裁镜头 → zip 素材包 → niwo.studio/video-studio → 成片" width="100%">
+</p>
 
 ## 在哪用
 
