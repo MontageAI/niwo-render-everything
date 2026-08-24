@@ -33,6 +33,39 @@ PDF、论文、网页链接、Word，或你和 AI 正在聊的话题——只要
   <img src="docs/flow.svg" alt="任意内容 → 口播文案与真实素材 → ffmpeg 裁镜头 → zip 素材包 → niwo.studio/video-studio → 成片" width="100%">
 </p>
 
+## 成片示例
+
+这些片子由 Skill 出包后，在 [Niwo 视频工作台](https://niwo.studio/video-studio) 渲染。目前做了三种形态：竖屏信息版、竖屏、横屏；后面会不断加入更多视频类型。如果你有好的想法或 demo，也欢迎来[交流群](#qq-交流群)联系我们。点播放才会加载视频。
+
+### 竖屏信息版
+
+<p align="center">
+  <video src="https://github.com/user-attachments/assets/509a21fa-b0b8-4aa2-a534-ef7cba059e77" controls preload="metadata" playsinline width="260"></video>
+  <video src="https://github.com/user-attachments/assets/08caf3a7-9d6a-43dd-9e0e-7a121dc6e5c9" controls preload="metadata" playsinline width="260"></video>
+</p>
+
+<p align="center">恒大 / 许家印　·　宇树 IPO</p>
+
+### 竖屏
+
+<p align="center">
+  <video src="https://github.com/user-attachments/assets/e2d43357-f4ff-4a70-918e-7ea2bfe65b28" controls preload="metadata" playsinline width="240"></video>
+  <video src="https://github.com/user-attachments/assets/2e469b87-5bd9-45b6-9b28-2decbc1d3616" controls preload="metadata" playsinline width="240"></video>
+  <video src="https://github.com/user-attachments/assets/ce209ddd-5fe4-4208-b840-8dabfa9226f7" controls preload="metadata" playsinline width="240"></video>
+</p>
+
+<p align="center">DeepSeek API 涨价　·　抖音为什么赢　·　炼金术士</p>
+
+### 横屏
+
+<p align="center">
+  <video src="https://github.com/user-attachments/assets/1ec035ae-23b1-444e-a983-c1a505538f68" controls preload="metadata" playsinline width="720"></video>
+</p>
+
+<p align="center">DeepSeek × 宇树</p>
+
+这些成片里带了 IP 形象。你可以在 [Niwo 视频工作台](https://niwo.studio/video-studio) 轻松定制自己的虚拟 IP，并用它来出镜。也可以选择不加任何 IP 形象，全看你自己。
+
 ## 在哪用
 
 这个 Skill 要跑在**能下文件、能执行命令的 Agent 工作模式**里。普通闲聊对话框通常下不了图、跑不了 ffmpeg，装了也做不完。
