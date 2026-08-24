@@ -39,40 +39,44 @@ PDF、论文、网页链接、Word，或你和 AI 正在聊的话题——只要
 
 ### 竖屏信息版
 
+<div align="center">
 <table>
 <tr>
-<td valign="top" width="50%">
-<video src="https://github.com/user-attachments/assets/509a21fa-b0b8-4aa2-a534-ef7cba059e77" controls preload="metadata" playsinline width="100%"></video>
+<td align="center" valign="top">
+<video src="https://github.com/user-attachments/assets/509a21fa-b0b8-4aa2-a534-ef7cba059e77" controls preload="metadata" playsinline width="240"></video>
 <br>恒大 / 许家印
 </td>
-<td valign="top" width="50%">
-<video src="https://github.com/user-attachments/assets/08caf3a7-9d6a-43dd-9e0e-7a121dc6e5c9" controls preload="metadata" playsinline width="100%"></video>
+<td align="center" valign="top">
+<video src="https://github.com/user-attachments/assets/08caf3a7-9d6a-43dd-9e0e-7a121dc6e5c9" controls preload="metadata" playsinline width="240"></video>
 <br>宇树 IPO
 </td>
 </tr>
 </table>
+</div>
 
 ### 竖屏
 
+<div align="center">
 <table>
 <tr>
-<td valign="top" width="50%">
-<video src="https://github.com/user-attachments/assets/e2d43357-f4ff-4a70-918e-7ea2bfe65b28" controls preload="metadata" playsinline width="100%"></video>
+<td align="center" valign="top">
+<video src="https://github.com/user-attachments/assets/e2d43357-f4ff-4a70-918e-7ea2bfe65b28" controls preload="metadata" playsinline width="240"></video>
 <br>DeepSeek API 涨价
 </td>
-<td valign="top" width="50%">
-<video src="https://github.com/user-attachments/assets/2e469b87-5bd9-45b6-9b28-2decbc1d3616" controls preload="metadata" playsinline width="100%"></video>
+<td align="center" valign="top">
+<video src="https://github.com/user-attachments/assets/2e469b87-5bd9-45b6-9b28-2decbc1d3616" controls preload="metadata" playsinline width="240"></video>
 <br>抖音为什么赢
 </td>
 </tr>
 <tr>
-<td valign="top" width="50%">
-<video src="https://github.com/user-attachments/assets/ce209ddd-5fe4-4208-b840-8dabfa9226f7" controls preload="metadata" playsinline width="100%"></video>
+<td align="center" valign="top">
+<video src="https://github.com/user-attachments/assets/ce209ddd-5fe4-4208-b840-8dabfa9226f7" controls preload="metadata" playsinline width="240"></video>
 <br>炼金术士
 </td>
-<td width="50%"></td>
+<td></td>
 </tr>
 </table>
+</div>
 
 ### 横屏
 
