@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="docs/niwo-logo-combine-en.png" width="280" alt="Niwo">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/niwo-logo-combine-en.png">
+    <img src="docs/niwo-logo-combine-en-light.png" width="280" alt="Niwo">
+  </picture>
 </p>
 
 <h1 align="center">Render Everything</h1>
