@@ -1,24 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 72" width="980" height="72" role="img" aria-label="���0G�A">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8B5CF6"/>
-    </marker>
-  </defs>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 72" width="980" height="72" role="img" aria-label="任意内容到成片的流程">
   <rect x="4" y="14" width="108" height="44" rx="10" fill="#F5F3FF" stroke="#8B5CF6" stroke-width="1.5"/>
-  <text x="58" y="41" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#1F2937">���</text>
-  <line x1="116" y1="36" x2="144" y2="36" stroke="#8B5CF6" stroke-width="1.75" marker-end="url(#arrow)"/>
+  <text x="58" y="41" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, PingFang SC, Hiragino Sans GB, Noto Sans SC, sans-serif" font-size="13" fill="#1F2937">任意内容</text>
+  <line x1="116" y1="36" x2="136" y2="36" stroke="#8B5CF6" stroke-width="1.75"/>
+  <polygon points="144,36 134,31.2 134,40.8" fill="#8B5CF6"/>
   <rect x="148" y="14" width="168" height="44" rx="10" fill="#F5F3FF" stroke="#8B5CF6" stroke-width="1.5"/>
-  <text x="232" y="41" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#1F2937">㭇H + � P</text>
-  <line x1="320" y1="36" x2="348" y2="36" stroke="#8B5CF6" stroke-width="1.75" marker-end="url(#arrow)"/>
+  <text x="232" y="41" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, PingFang SC, Hiragino Sans GB, Noto Sans SC, sans-serif" font-size="13" fill="#1F2937">口播文案 + 真实素材</text>
+  <line x1="320" y1="36" x2="340" y2="36" stroke="#8B5CF6" stroke-width="1.75"/>
+  <polygon points="348,36 338,31.2 338,40.8" fill="#8B5CF6"/>
   <rect x="352" y="14" width="128" height="44" rx="10" fill="#F5F3FF" stroke="#8B5CF6" stroke-width="1.5"/>
-  <text x="416" y="41" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#1F2937">ffmpeg �\4</text>
-  <line x1="484" y1="36" x2="512" y2="36" stroke="#8B5CF6" stroke-width="1.75" marker-end="url(#arrow)"/>
+  <text x="416" y="41" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, PingFang SC, Hiragino Sans GB, Noto Sans SC, sans-serif" font-size="13" fill="#1F2937">ffmpeg 裁镜头</text>
+  <line x1="484" y1="36" x2="504" y2="36" stroke="#8B5CF6" stroke-width="1.75"/>
+  <polygon points="512,36 502,31.2 502,40.8" fill="#8B5CF6"/>
   <rect x="516" y="14" width="112" height="44" rx="10" fill="#F5F3FF" stroke="#8B5CF6" stroke-width="1.5"/>
-  <text x="572" y="41" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#1F2937">zip  P</text>
-  <line x1="632" y1="36" x2="660" y2="36" stroke="#8B5CF6" stroke-width="1.75" marker-end="url(#arrow)"/>
+  <text x="572" y="41" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, PingFang SC, Hiragino Sans GB, Noto Sans SC, sans-serif" font-size="13" fill="#1F2937">zip 素材包</text>
+  <line x1="632" y1="36" x2="652" y2="36" stroke="#8B5CF6" stroke-width="1.75"/>
+  <polygon points="660,36 650,31.2 650,40.8" fill="#8B5CF6"/>
   <rect x="664" y="14" width="188" height="44" rx="10" fill="#F5F3FF" stroke="#8B5CF6" stroke-width="1.5"/>
-  <text x="758" y="41" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#1F2937">niwo.studio/video-studio</text>
-  <line x1="856" y1="36" x2="884" y2="36" stroke="#8B5CF6" stroke-width="1.75" marker-end="url(#arrow)"/>
+  <text x="758" y="41" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, PingFang SC, Hiragino Sans GB, Noto Sans SC, sans-serif" font-size="13" fill="#1F2937">niwo.studio/video-studio</text>
+  <line x1="856" y1="36" x2="876" y2="36" stroke="#8B5CF6" stroke-width="1.75"/>
+  <polygon points="884,36 874,31.2 874,40.8" fill="#8B5CF6"/>
   <rect x="888" y="14" width="84" height="44" rx="10" fill="#8B5CF6"/>
-  <text x="930" y="41" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#FFFFFF">G</text>
+  <text x="930" y="41" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, PingFang SC, Hiragino Sans GB, Noto Sans SC, sans-serif" font-size="13" fill="#FFFFFF">成片</text>
 </svg>

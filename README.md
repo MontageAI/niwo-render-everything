@@ -12,10 +12,16 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/MontageAI/niwo-render-everything/blob/main/skills/niwo-render-everything"><img src="https://img.shields.io/badge/skill-niwo--render-everything-8b5cf6?style=flat-square" alt="skill"></a>
+  <a href="https://github.com/MontageAI/niwo-render-everything/blob/main/skills/niwo-render-everything"><img src="https://img.shields.io/static/v1?label=skill&message=niwo-render-everything&color=8b5cf6&style=flat-square" alt="skill"></a>
   <a href="#环境要求"><img src="https://img.shields.io/badge/agents-70%2B-22d3ee?style=flat-square" alt="70+ agents"></a>
   <a href="#license"><img src="https://img.shields.io/badge/license-MIT-0ea5e9?style=flat-square" alt="MIT"></a>
   <a href="https://github.com/AudareLesdent"><img src="https://img.shields.io/badge/maintainer-AudareLesdent-111827?style=flat-square&logo=github" alt="maintainer"></a>
+</p>
+
+<p align="center">
+  <a href="https://chatgpt.com/"><img src="https://img.shields.io/static/v1?label=Ready%20for&message=ChatGPT%20Work&color=10a37f&style=flat-square&logo=openai&logoColor=white" alt="Ready for ChatGPT Work"></a>
+  <a href="https://openai.com/codex/"><img src="https://img.shields.io/static/v1?label=Ready%20for&message=Codex&color=111827&style=flat-square&logo=openai&logoColor=white" alt="Ready for Codex"></a>
+  <a href="https://www.workbuddy.cn/"><img src="https://img.shields.io/static/v1?label=Ready%20for&message=WorkBuddy&color=f97316&style=flat-square" alt="Ready for WorkBuddy"></a>
 </p>
 
 <p align="center">
@@ -33,7 +39,10 @@ PDF、论文、网页链接、Word，或你和 AI 正在聊的话题——只要
 | 按成片形态写文案，竖屏信息版连钩子标题一起定 | 下载图片和 B-roll，不是只给链接 | 用 ffmpeg 定好每一段用哪几秒 | 把 zip 上传到 [视频工作台](https://niwo.studio/video-studio) 渲染 |
 
 <p align="center">
-  <img src="docs/flow.svg" alt="任意内容 → 口播文案与真实素材 → ffmpeg 裁镜头 → zip 素材包 → niwo.studio/video-studio → 成片" width="100%">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/flow-dark.png">
+    <img src="docs/flow.png" alt="任意内容 → 口播文案与真实素材 → ffmpeg 裁镜头 → zip 素材包 → niwo.studio/video-studio → 成片" width="100%">
+  </picture>
 </p>
 
 ## 成片示例
