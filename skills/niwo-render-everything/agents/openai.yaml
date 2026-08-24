@@ -1,4 +1,4 @@
 interface:
   display_name: "Niwo - RenderEverything"
-  short_description: "把聊过的话题整理成可上传 Niwo 渲染的短视频素材包"
-  default_prompt: "Use $niwo-render-everything to turn this topic into a short-video asset bundle."
+  short_description: "把任意内容做成可上传 Niwo 视频工作台渲染的短视频"
+  default_prompt: "Use $niwo-render-everything to turn this material into a short-video asset bundle for Niwo Video Studio."

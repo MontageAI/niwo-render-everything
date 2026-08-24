@@ -1,11 +1,13 @@
 ---
 name: niwo-render-everything
-description: Build a Niwo short-video asset bundle from a conversation. Finalize the narration script with the user, download real images and B-roll footage from the web, trim clips with ffmpeg, write content.json and manifest.json, then deliver a zip the user uploads to Niwo for rendering. Requires downloading files to local disk, shell access with ffmpeg and ffprobe, and zip. Use when the user wants to turn a topic, news story, or finished script into a short video, or asks to gather footage and stills to match a narration.
+description: Build a Niwo short-video asset bundle from any content the user can provide—PDF, paper, URL, Word, chat, or a finished script. Finalize the narration with the user, download real images and B-roll, trim clips with ffmpeg, write content.json and manifest.json, then deliver a zip the user uploads to Niwo Video Studio (https://niwo.studio/video-studio) for rendering. Requires downloading files to local disk, shell access with ffmpeg and ffprobe, and zip. Use when the user wants to turn any material into a short video, or asks to gather footage and stills to match a narration.
 ---
 
 # Niwo 短视频素材包
 
-把和用户聊过的内容，整理成一个可以直接上传到 Niwo 渲染成片的「素材包」。
+把用户给的任意内容，整理成一个可以上传到 [Niwo 视频工作台](https://niwo.studio/video-studio) 渲染成片的「素材包」。
+
+输入不限对话。PDF、论文、网页链接、Word、聊天记录、已写好的口播——只要用户能丢进当前 Agent，你就先读材料，再做成素材包。zip 不是成片，是 Niwo 渲染管线的输入。
 
 ## 先确认你能不能做
 
@@ -43,11 +45,13 @@ videos/
 
 `images/` 和 `videos/` 的文件名随意，但必须与 `manifest.json` 里的 `file` 字段一致。
 
-你只负责**内容**：文案、素材、多音字读音、钩子标题。成片形态、音色、语速、字幕开关、IP 形象、背景音乐这些渲染参数由用户在 Niwo 里渲染前自己在界面上选，不要写进 `content.json`。
+你只负责**内容**：文案、素材、多音字读音、钩子标题。成片形态、音色、语速、字幕开关、IP 形象、背景音乐这些渲染参数由用户在 [Niwo 视频工作台](https://niwo.studio/video-studio) 渲染前自己在界面上选，不要写进 `content.json`。
 
 ## 第零步：开工前先确认几件事
 
 动手找素材、写文案之前，先把下面该问的问清楚。不要默默替用户决定。
+
+用户丢来的如果是 PDF、论文、网页链接、Word 或其他文件，先把材料读完（链接就打开看正文），再进入下面的提问。不要因为不是纯聊天就拒绝，也不要还没读材料就先问成片形态。
 
 只有用户**在这次对话里明确说过**的，才算答案。跨会话记忆、以前几支片子里的选择、「用户一般偏好」这类推断，一概不算，哪怕你很确定也不算。这些只能作为选项里的推荐项递给用户确认，不能直接当结论用。
 
@@ -354,9 +358,7 @@ zip 里不要放软链接，也不要放上面结构之外的其他文件。
 
 ## 交付
 
-把 zip 交给用户，并告诉他上传到 Niwo 生成视频：
-
-<!-- TODO: 替换成正式的上传入口地址与产品名 -->
+把 zip 交给用户，并告诉他打开 [Niwo 视频工作台](https://niwo.studio/video-studio) 上传这份素材包。zip 是 Niwo 渲染管线的输入，成片在产品里出。
 
 上传前用户可以自己再筛一遍素材：不满意的直接删文件，想加的直接放进 `images/` 或 `videos/`——多出来的文件不写进 manifest 也能用，Niwo 会自动补描述。
 
