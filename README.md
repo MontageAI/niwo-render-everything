@@ -28,6 +28,17 @@
   <img src="docs/banner.png" alt="把任何内容，变成可以直接渲染的视频" width="100%" style="border-radius: 28px;">
 </p>
 
+> [!IMPORTANT]
+> ### 用户领航团 · 内测招募中
+>
+> Niwo 目前是内测阶段，加入领航团即可拿到内测账号，并解锁这些身份福利：
+>
+> - 赠送试用积分
+> - 解锁邀请码分发和返利权限
+> - 抢先体验最新功能
+>
+> **[点这里加入用户领航团 →](#加入用户领航团)**
+
 PDF、论文、网页链接、Word，或你和 AI 正在聊的话题——只要能丢进 Cursor、ChatGPT、Claude 这类 Agent，这个 Skill 就能帮你整理成一条短视频
 
 它先做出一份素材包（口播文案、真实画面、镜头选段），你再把 zip 上传到 [Niwo 视频工作台](https://niwo.studio/video-studio)。素材包是 Niwo 渲染体系的输入，成片在产品里出
@@ -47,7 +58,7 @@ PDF、论文、网页链接、Word，或你和 AI 正在聊的话题——只要
 
 ## 成片示例
 
-这些片子由 Skill 出包后，在 [Niwo 视频工作台](https://niwo.studio/video-studio) 渲染。目前做了三种形态：竖屏信息版、竖屏、横屏；后面会不断加入更多视频类型。如果你有好的想法或 demo，也欢迎来[交流群](#微信交流)联系我们。点播放才会加载视频
+这些片子由 Skill 出包后，在 [Niwo 视频工作台](https://niwo.studio/video-studio) 渲染。目前做了三种形态：竖屏信息版、竖屏、横屏；后面会不断加入更多视频类型。如果你有好的想法或 demo，也欢迎来[用户领航团](#加入用户领航团)联系我们。点播放才会加载视频
 
 ### 竖屏信息版
 
@@ -216,7 +227,7 @@ zip 不是成片。Agent 交包之后，先把压缩包**下载到本地**，再
   <img src="docs/niwo-studio.png" alt="Niwo 视频工作台：选择成片形态、配音、背景音乐后开始渲染" width="100%" style="border-radius: 28px;">
 </p>
 
-当前还在**内测**。获取内测账号需要关注微信公众号（会发最新用户群），或直接加微信群，即可领取内测邀请码和免费试用积分
+当前还在**内测**，没有账号的话先[加入用户领航团](#加入用户领航团)，领内测邀请码和试用积分
 
 ## 自校验
 
@@ -241,30 +252,26 @@ python3 skills/niwo-render-everything/scripts/validate_bundle.py <素材包目�
   GitHub · 欢迎 Watch / Star / 提 Issue
 </p>
 
-### 微信交流
+### 加入用户领航团
 
-内测获取账号需要关注微信公众号（会发最新用户群），或直接加微信群，即可获取内测邀请码和免费试用积分。微信群二维码会过期，过期后请关注公众号领取最新群
+Niwo 目前是内测阶段，领航团就是内测用户的入口，进去按页面提示就能领到内测邀请码
 
-<div align="center">
-<table>
-<tr>
-<td align="center" valign="top">
-<img src="docs/wechat-official.png" width="240" alt="关注微信公众号">
-<br>关注微信公众号
-</td>
-<td align="center" valign="top">
-<img src="docs/wechat-group.png" width="240" alt="加入微信群 Niwo-RenderEverything体验">
-<br>直接加微信群
-</td>
-</tr>
-</table>
-</div>
+**领航团身份福利**
+
+| 赠送试用积分 | 解锁邀请码分发和返利权限 | 抢先体验最新功能 |
+| --- | --- | --- |
+| 进来就能开始渲染，不用先付费 | 别人用你的邀请码进来，你和对方都拿积分 | 新的成片形态和渲染模型先给领航团试 |
+
+<p align="center">
+  <a href="https://niwo.studio/contact"><b>加入用户领航团 →</b></a><br>
+  <sub>https://niwo.studio/contact</sub>
+</p>
 
 公开仓库这边也可以直接提 [Issue](https://github.com/MontageAI/niwo-render-everything/issues)
 
 ## 关于这个仓库
 
-这是自动同步的镜像仓库，内容来自 Niwo 的主仓库，**不接受 Pull Request**（提交会在下次同步时被覆盖）。有问题或建议请提 [Issue](https://github.com/MontageAI/niwo-render-everything/issues)，或进上面的交流群
+这是自动同步的镜像仓库，内容来自 Niwo 的主仓库，**不接受 Pull Request**（提交会在下次同步时被覆盖）。有问题或建议请提 [Issue](https://github.com/MontageAI/niwo-render-everything/issues)，或进上面的用户领航团
 
 ## License
 
