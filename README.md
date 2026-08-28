@@ -47,7 +47,7 @@ PDF、论文、网页链接、Word，或你和 AI 正在聊的话题——只要
 
 ## 成片示例
 
-这些片子由 Skill 出包后，在 [Niwo 视频工作台](https://niwo.studio/video-studio) 渲染。目前做了三种形态：竖屏信息版、竖屏、横屏；后面会不断加入更多视频类型。如果你有好的想法或 demo，也欢迎来[交流群](#微信-交流群)联系我们。点播放才会加载视频
+这些片子由 Skill 出包后，在 [Niwo 视频工作台](https://niwo.studio/video-studio) 渲染。目前做了三种形态：竖屏信息版、竖屏、横屏；后面会不断加入更多视频类型。如果你有好的想法或 demo，也欢迎来[交流群](#微信交流)联系我们。点播放才会加载视频
 
 ### 竖屏信息版
 
@@ -216,7 +216,7 @@ zip 不是成片。Agent 交包之后，先把压缩包**下载到本地**，再
   <img src="docs/niwo-studio.png" alt="Niwo 视频工作台：选择成片形态、配音、背景音乐后开始渲染" width="100%" style="border-radius: 28px;">
 </p>
 
-当前还在**内测**。想开新账号或领取免费试用额度，请先加入下面的 微信 交流群，在群里联系维护者
+当前还在**内测**。获取内测账号需要关注微信公众号（会发最新用户群），或直接加微信群，即可领取内测邀请码和免费试用积分
 
 ## 自校验
 
@@ -241,13 +241,24 @@ python3 skills/niwo-render-everything/scripts/validate_bundle.py <素材包目�
   GitHub · 欢迎 Watch / Star / 提 Issue
 </p>
 
-### 微信 交流群
+### 微信交流
 
-群名 **Niwo-RenderEverything体验**。用 微信 扫下面的码加入
+内测获取账号需要关注微信公众号（会发最新用户群），或直接加微信群，即可获取内测邀请码和免费试用积分。微信群二维码会过期，过期后请关注公众号领取最新群
 
-<p align="center">
-  <img src="docs/VX-group.png" width="280" alt="微信 交流群 ">
-</p>
+<div align="center">
+<table>
+<tr>
+<td align="center" valign="top">
+<img src="docs/wechat-official.png" width="240" alt="关注微信公众号">
+<br>关注微信公众号
+</td>
+<td align="center" valign="top">
+<img src="docs/wechat-group.png" width="240" alt="加入微信群 Niwo-RenderEverything体验">
+<br>直接加微信群
+</td>
+</tr>
+</table>
+</div>
 
 公开仓库这边也可以直接提 [Issue](https://github.com/MontageAI/niwo-render-everything/issues)
 
