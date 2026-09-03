@@ -33,6 +33,9 @@ NARROW_CHAR_WIDTH = 0.56
 MAX_HEADLINE_LINE_WIDTH = 14.0
 WARN_HEADLINE_LINE_WIDTH = 12.0
 MAX_HIGHLIGHTS_PER_LINE = 2
+# 主标题下方那行英文副标题，只有卡片式信息版会排它。它排在主标题四分之一的字号上，
+# 一行放得下大半句英文；再长就会挤掉主标题的字号。
+MAX_SUBHEADLINE_CHARS = 72
 MAX_SOURCE_ENTRY_WIDTH = 24.0
 MAX_SUMMARY_CHARS = 240
 MAX_TAG_CHARS = 32
@@ -230,13 +233,31 @@ def check_sources(value: Any, report: Report) -> None:
         seen.add(collapsed)
 
 
+def check_headline_subtitle(value: Any, report: Report) -> None:
+    """校验主标题下方那行英文副标题。缺省是常态，只有写了才校验。"""
+    if value is None:
+        return
+    if not isinstance(value, str):
+        report.error("hook_headline.subtitle 必须是字符串")
+        return
+    if "\n" in value:
+        report.error("hook_headline.subtitle 不能包含换行符")
+        return
+    if len(value) > MAX_SUBHEADLINE_CHARS:
+        report.error(
+            f"hook_headline.subtitle 有 {len(value)} 字符，"
+            f"超过上限 {MAX_SUBHEADLINE_CHARS}"
+        )
+
+
 def check_hook_headline(value: Any, report: Report) -> None:
     """校验顶部钩子大标题的行数、高亮标记与单行长度。"""
     if not isinstance(value, dict):
         report.error("hook_headline 必须是对象")
         return
-    for key in sorted(set(value) - {"lines"}):
+    for key in sorted(set(value) - {"lines", "subtitle"}):
         report.error(f"hook_headline 出现未知字段 {key!r}")
+    check_headline_subtitle(value.get("subtitle"), report)
     lines = value.get("lines")
     if not isinstance(lines, list):
         report.error("hook_headline.lines 必须是数组")
