@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "version": "1.0.0",
+  "released": "2026-09-04",
+  "min_compatible": "1.0.0",
+  "changelog": "https://github.com/MontageAI/niwo-render-everything/blob/main/skills/niwo-render-everything/CHANGELOG.md",
+  "highlights": [
+    "第一个带版本号的版本，之后每次改动都会在这里留一条更新要点"
+  ]
+}

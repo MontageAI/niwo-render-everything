@@ -170,6 +170,18 @@ npx skills add MontageAI/niwo-render-everything -g -a codex -a cursor
 
 </details>
 
+## 怎么更新
+
+Skill 一直在更新，成片形态和素材包协议都会跟着变。**装好之后不用自己盯版本**：每次开工前它会先比对一次版本号，有新版就先告诉你改了什么、问你要不要更新，你说更新它就自己装好再干活。检查不通网就自动跳过，不会卡住你。
+
+想手动更新，在终端执行：
+
+```bash
+npx skills update niwo-render-everything -y
+```
+
+改了什么见 [CHANGELOG](skills/niwo-render-everything/CHANGELOG.md)，当前版本号在 [version.json](skills/niwo-render-everything/version.json)
+
 ## 环境要求
 
 这个 Skill 需要 Agent 具备三项能力，缺一项就跑不完：
