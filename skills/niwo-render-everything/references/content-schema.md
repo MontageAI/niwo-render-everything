@@ -22,10 +22,12 @@
 }
 ```
 
-只有 `schema_version`、`title` 和 `script` 是无条件必填，其余可以省略。两处例外：
+只有 `schema_version`、`title` 和 `script` 是无条件必填，其余可以省略。条件要求：
 
 - `hook_headline` 是有条件必填：用户要的成片形态是竖屏信息版时必须写，另两种形态必须省略，见下面的字段说明。
 - `sources` 协议上可省，但**只要文案引用过公开资料就默认写上**，不用问用户要不要带；显示与否是用户在渲染界面上的开关。
+- `editorial` 仅在用户明确选择横屏信息动效版 `landscape-editorial-motion-v1` 时填写；它描述备料，不是渲染版面参数。其他版面不要填写。
+- `prepared_for` 在普通横屏版或横屏纯视频版中分别写 `landscape-full-v1` 或 `landscape-footage-v1`；它只说明备料目标，不覆盖用户的渲染设置。横屏信息动效版使用 `editorial.prepared_for`，不写顶层 `prepared_for`。
 
 ## 字段说明
 
@@ -156,9 +158,40 @@
 
 可选，留给用户的补充说明，上限 2000 字。比如某个素材为什么没找到、哪一段建议用户自己补图。
 
+### prepared_for
+
+普通横屏版填写 `"landscape-full-v1"`，横屏纯视频版填写 `"landscape-footage-v1"`。这个字段只标记素材按哪个版面备料，供工作台推荐初值和显示取向提示；不会覆盖用户保存的渲染配置。横屏信息动效版改用 `editorial.prepared_for`，竖屏版面省略此字段。
+
+### editorial
+
+仅供横屏信息动效版备料。按已确认的 `script` 原文分段，不能在此改写口播；`title_anchor` 与每个 `script_anchor` 必须是 `script` 中连续出现的原文。示例：
+
+```json
+"editorial": {
+  "prepared_for": "landscape-editorial-motion-v1",
+  "title_text": "标题画面显示的短句",
+  "title_anchor": "这是口播中原样出现的短句",
+  "segments": [
+    {
+      "id": "opening",
+      "script_anchor": "这是口播中原样出现的短句",
+      "role": "hook",
+      "visual_goal": "展示与开场论点直接相关的真实现场画面"
+    }
+  ]
+}
+```
+
+- `prepared_for`：固定为 `landscape-editorial-motion-v1`，说明备料意图，不替用户设置渲染版面。
+- `title_text`：片名画面用的非空文字；不是竖屏信息版的 `hook_headline`。
+- `title_anchor`：片名关联的口播原文摘录。
+- `segments`：1 到 128 段；`id` 唯一，`script_anchor` 为原文摘录，`role` 取 `hook`、`title`、`origin`、`explain`、`evidence`、`contrast`、`conclusion` 之一，`visual_goal` 描述这一段需要什么可见画面。每项必须非空，`id` 最多 128 字符，其他文字最多 2000 字符。
+
+这些字段只让服务端理解素材与文案的关系。如何搜集视频、计算有效视频容量和制作透明前景，见 [专属备料说明](editorial-motion-preparation.md)。
+
 ## 不要写这些
 
-以下字段都由用户在 Niwo 里渲染前决定，Niwo 会把它们写进素材包的 `render.json`。写进 `content.json` 会因为「未知字段」直接校验失败：
+以下渲染字段都由用户在 Niwo 里渲染前决定，Niwo 会把它们写进素材包的 `render.json`。写进 `content.json` 会因为「未知字段」直接校验失败：
 
 - 成片形态 `video_format`（旧写法 `aspect_ratio`）：横屏、竖屏还是竖屏信息版，由用户在界面上选。你只按第零步确认的取向收素材，并在 `notes` 里提醒用户选一致的形态
 - 音色 `voice_id`、语速 `speed`

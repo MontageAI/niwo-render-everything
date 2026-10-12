@@ -45,11 +45,51 @@
 - `kind`：**必填**，`image` 或 `video`，必须与扩展名一致。图片支持 `.jpg` `.jpeg` `.png` `.webp` `.gif`，视频支持 `.mp4` `.mov` `.mkv` `.webm`。
 - `summary`：**单行**中文，一句话说清画面里看得见的东西（主体、地点、动作、画面类型），不要写你的解读。Niwo 会直接拿它当素材说明用，写得准才配得准。上限 240 字。
 - `tags`：2 到 5 个中文短标签，每个不超过 32 字，最多 8 个。
-- `source_url`：素材所在那一页的地址（不是网站首页），方便回溯来源，能填就填。
-- `script_anchor`：**从口播文案里原样摘一小句**，表示这个素材适合配在这句话附近，可以留空。注意这只是建议：最终分几个镜头、素材落在第几镜由 Niwo 决定，不要试图在这里排完整的分镜表。上限 240 字。
+- `source_url`：素材所在那一页的地址（不是网站首页），方便回溯来源，能填就填。最多 2000 字符；超限由外部 Agent 改用仍指向同一素材来源的有效短网址，不能直接截断网址。
+- `script_anchor`：**从口播文案里原样摘一小句**，表示这个素材适合配在这句话附近，可以留空。注意这只是建议：最终分几个镜头、素材落在第几镜由 Niwo 决定，不要试图在这里排完整的分镜表。最多 512 字符，建议控制在 240 字符以内；超限由外部 Agent 重新选择较短的连续原文，不能改写定稿口播。7.13 拒收超过 512 字符的输入，通过后仍压成单行并截到 240 字符；Niwo 上传接口的接收上限保持 2000 字符。
 - `clip_start_seconds` / `clip_end_seconds`：视频选段窗口，单位秒。终点必须大于起点。**图片不能写这两个字段**，写了直接校验失败。
-- `license`：可选的授权声明，仅用于留档，上限 64 字。
+- `license`：可选的授权声明，仅用于留档，最多 128 字符。超限由外部 Agent 精简说明、保留许可类型与必要署名，不得为通过校验而改成不真实的授权声明。
 - `relevance_score`：可选，0 到 1 之间。一般不用填。
+
+### editorial
+
+仅当用户明确选择横屏信息动效版 `landscape-editorial-motion-v1`，在该版面的素材条目中填写。其他版面沿用原字段。示例视频底片与视频来源的透明前景：
+
+```json
+{
+  "file": "videos/01-scene.mp4",
+  "kind": "video",
+  "editorial": {
+    "role": "footage",
+    "subject": "镜头中实际可见的主体",
+    "segment_ids": ["opening"],
+    "title_candidate": true,
+    "focus": {"x": 0.2, "y": 0.1, "width": 0.5, "height": 0.8}
+  }
+}
+```
+
+```json
+{
+  "file": "images/01-subject.png",
+  "kind": "image",
+  "editorial": {
+    "role": "foreground",
+    "subject": "从镜头中抠出的主体",
+    "segment_ids": ["opening"],
+    "derived_from": {"file": "videos/01-scene.mp4", "at_seconds": 2.4}
+  }
+}
+```
+
+- `role`：必填，`footage` 是真实视频底片，`foreground` 是有可见主体和透明背景的 PNG 叠层。
+- `segment_ids`：关联 `content.editorial.segments` 中已有的 `id`；视频应关联其要支撑的口播段落。最多 128 项。
+- `subject`：可选，真实可见的主体，最多 2000 字符。
+- `title_candidate`：可选布尔值，提示素材是否适合片名画面，默认 `false`。
+- `derived_from`：前景必填，`file` 必须原样指向本包 manifest 已声明的视频安全相对路径，`at_seconds` 是该文件中的非负抽帧秒数。路径最多 260 字符；抽帧位置必须落在文件实际时长内。
+- `focus`：可选主体框；`x`、`y` 是源画面中的左上角坐标，`width`、`height` 是宽高，均用 0 到 1 的有限数值，必须有正面积且不越出画面。
+
+`foreground` 必须从其 `derived_from` 视频实际抽帧抠图，不能用独立图片、截图或生成图冒充。视频有效时长按实际文件与选段窗口计算，透明前景不增加视频时长。完整步骤见 [专属备料说明](editorial-motion-preparation.md)。
 
 ## 容易踩的坑
 
