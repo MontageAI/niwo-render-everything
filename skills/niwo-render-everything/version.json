@@ -1,10 +1,12 @@
 {
   "schema_version": 1,
-  "version": "1.1.2",
-  "released": "2026-10-10",
+  "version": "1.1.3",
+  "released": "2026-10-16",
   "min_compatible": "1.0.0",
   "changelog": "https://github.com/MontageAI/niwo-render-everything/blob/main/skills/niwo-render-everything/CHANGELOG.md",
   "highlights": [
+    "明确所有版面由外部 Agent 备料，禁止将新增标题、卡片、界面与动效提前合进实拍底片",
+    "统一横屏信息动效版容量说明：保留 90% 备料下限，不规定成片视频与 UI 占比",
     "仅横屏信息动效版按定稿文案分段搜集真实视频并验收 90% 有效视频容量",
     "新横屏素材包打包前检查 100 个媒体与 195 MiB 原始文件容量，预留 ZIP 上传余量",
     "支持从包内视频抽帧的透明前景 PNG 及对应 editorial 元数据",

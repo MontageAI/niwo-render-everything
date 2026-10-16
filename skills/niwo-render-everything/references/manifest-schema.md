@@ -91,6 +91,8 @@
 
 `foreground` 必须从其 `derived_from` 视频实际抽帧抠图，不能用独立图片、截图或生成图冒充。视频有效时长按实际文件与选段窗口计算，透明前景不增加视频时长。完整步骤见 [专属备料说明](editorial-motion-preparation.md)。
 
+`footage` 交付真实视频底片；Agent 不得先把新标题、卡片、软件截图或动效合进视频再标为底片。真实软件截图应作为独立 `image` 素材交付；`foreground` 也保持独立 PNG，由 Niwo 合成。`title_candidate` 仅是用途提示，不要求把片名提前渲染到素材中。真实来源本来带有的文字与界面应在 `summary` 中如实说明。
+
 ## 容易踩的坑
 
 - `summary` 写成多行会被压成单行，所以别在里面排版。

@@ -183,9 +183,9 @@
 ```
 
 - `prepared_for`：固定为 `landscape-editorial-motion-v1`，说明备料意图，不替用户设置渲染版面。
-- `title_text`：片名画面用的非空文字；不是竖屏信息版的 `hook_headline`。
+- `title_text`：交给 Niwo 制作片名画面的非空文字；不是竖屏信息版的 `hook_headline`。只写入 JSON，不提前渲染进素材视频。
 - `title_anchor`：片名关联的口播原文摘录。
-- `segments`：1 到 128 段；`id` 唯一，`script_anchor` 为原文摘录，`role` 取 `hook`、`title`、`origin`、`explain`、`evidence`、`contrast`、`conclusion` 之一，`visual_goal` 描述这一段需要什么可见画面。每项必须非空，`id` 最多 128 字符，其他文字最多 2000 字符。
+- `segments`：1 到 128 段；`id` 唯一，`script_anchor` 为原文摘录，`role` 取 `hook`、`title`、`origin`、`explain`、`evidence`、`contrast`、`conclusion` 之一，`visual_goal` 描述这一段需要什么可见画面，供搜集素材和 Niwo 编排参考；不要求 Agent 先实现画面，也不在此规定 UI 像素位置或入场时刻。每项必须非空，`id` 最多 128 字符，其他文字最多 2000 字符。
 
 这些字段只让服务端理解素材与文案的关系。如何搜集视频、计算有效视频容量和制作透明前景，见 [专属备料说明](editorial-motion-preparation.md)。
 
