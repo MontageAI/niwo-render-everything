@@ -32,7 +32,7 @@ python3 <skill 目录>/scripts/skill_update.py
 | 退出码 | 含义 | 你要做的事 |
 | --- | --- | --- |
 | 0 | 已是最新 | 什么都不用说，直接进第零步 |
-| 3 | 没检查成功（离线、超时、网络被挡） | 当作最新，不要提，也不要重试，直接进第零步 |
+| 3 | 没检查成功（离线、超时、网络被挡） | 使用随附协议离线检查，不声称已经确认最新版；继续任务，若出现协议不兼容再诊断版本 |
 | 10 | 有新版，可选更新 | 把版本号和更新要点告诉用户，问他现在更新还是照旧版继续，等他回答 |
 | 20 | 本地版本已低于最低兼容版本 | 告诉用户必须先更新，旧版产出的包 Niwo 可能拒收，更完再开工 |
 
@@ -61,7 +61,7 @@ python3 <skill 目录>/scripts/skill_update.py --apply
 4. 给每段视频定好用哪几秒。
 5. 写 `manifest.json` 前先读 `references/manifest-schema.md`。
 6. 写 `content.json` 前先读 `references/content-schema.md`。
-7. 跑 `scripts/validate_bundle.py` 自校验，通过后再打包。
+7. 跑 `scripts/validate_bundle.py --json`；外部 Agent 自主修复并复检，最后用 `scripts/pack_bundle.py` 生成已验收 ZIP。
 
 ## 交付物
 
@@ -402,35 +402,40 @@ ffmpeg -ss <起点秒> -to <终点秒> -i 原视频.mp4 \
 
 写之前再对一遍第零步确认的形态：竖屏信息版必须带上用户确认过的 `hook_headline`，竖屏视频、横屏视频、横屏信息动效版与横屏纯视频版必须没有这个字段。竖屏版面没有 `prepared_for`，三种横屏版面按上段写对应备料标识。
 
-## 第六步：自校验并打包
+## 第六步：自主修复、复检与打包
 
-打包前先跑自校验，它会检查字段、文件对应关系和视频选段窗口。脚本在这个 skill 目录的 `scripts/` 下，用绝对路径调用：
+校验失败只阻止错误包交付，不终止用户任务。调用 Skill 的外部 Agent 负责修复；Python 只检查与报告，不调用模型、不替用户改文案。
 
-```bash
-python3 <skill 目录>/scripts/validate_bundle.py <素材包目录>
-```
-
-三种横屏版面都用 `--layout` 检查视频方向；纯视频版与信息动效版还须给目标时长，若已有配音实测时长则优先填实测值：
+先用结构化报告定位问题（横屏带上已确认的 `--layout`，信息动效/纯视频还带 `--target-seconds` 或已有的 `--narration-seconds`）：
 
 ```bash
-python3 <skill 目录>/scripts/validate_bundle.py <素材包目录> --layout landscape-full-v1
-python3 <skill 目录>/scripts/validate_bundle.py <素材包目录> --layout landscape-footage-v1 --target-seconds <目标秒数>
-python3 <skill 目录>/scripts/validate_bundle.py <素材包目录> --layout landscape-editorial-motion-v1 --narration-seconds <实测秒数>
+python3 <skill 目录>/scripts/validate_bundle.py <素材包目录> --json --layout landscape-editorial-motion-v1 --target-seconds 45
 ```
 
-横屏版面会逐条检查视频显示宽高；纯视频版与信息动效版还会计算有效视频选段的总时长，不会把同一个选段自动循环、慢放或冻结来补齐缺口；新横屏还会核对 Niwo 上传的媒体数量和预留 ZIP 开销后的体积。即使总量通过，仍要人工核对每段内容相关性、重复镜头与最终视频可见占比。竖屏版面照原命令校验。
+收到 `status=repair_required` / 退出码 1 后，Agent 必须继续工作：
 
-有报错就改到通过为止，不要带着报错打包。`license`、`source_url`、普通素材 `script_anchor` 的硬上限分别为 128、2000、512 字符；字段说明与修订要求见 [manifest 协议](references/manifest-schema.md)。脚本超限时返回退出码 `1`，输出素材文件、字段位置、实际长度和上限，不会调用模型或自动修改 JSON。调用本 Skill 的外部 Agent（例如 Codex、Cursor）必须读取错误，自行修订对应的 `manifest.json` 字段，再用原来的命令和参数重新校验；只有退出码为 `0` 才能生成和交付 ZIP。若无法在保留有效来源、必要授权信息和原文锚点的前提下满足上限，应说明原因并等待用户处理，不能带错交付。
+1. 读完 `errors`，按文件、字段和规则定位。缺用途就按真实素材补角色与段落；普通截图标 `reference_image`，不编造视频派生关系。
+2. 自主修正可确定的问题：精简超长标签和说明、修正文件对应关系、重新下载损坏素材、补充不足的真实视频、在不损害表达的前提下压缩过大素材。
+3. 原文锚点从已确认口播重新摘取；来源 URL 若填写必须真实有效，可选的来源 URL 缺失不要求编造。不得捏造授权、改写已定稿口播、擅自切换版面或删除用户必用素材来绕过检查。
+4. 用相同版面和时长参数复检，继续修复新发现的问题。修复一批即复检，不盲目重复原命令；相同错误持续出现时检查错误定位、版本、参数与运行环境，改变修复方法。
+5. 脚本运行异常也由 Agent 先诊断并修复环境/安装完整性；不能通过关闭检查、修改协议快照、吞掉错误或改退出码“修好”。确认为程序缺陷且任务授权允许改工具时，可以修复缺陷并补针对性验证，保留原规则。
+6. 仅在确实缺少用户独有素材、授权事实，或必须改变用户确认的需求时，带具体阻塞原因请求补充信息。普通校验错误不要转交用户手工处理；不要因一次失败结束任务。
 
-如果你拿到的是一份复制粘贴的提示词、手上没有这个脚本，就按文末的自查清单逐项人工核对。校验通过后：
+硬性准入与质量建议分开：`errors` 必须修复；`warnings` 结合素材内容判断，不把建议误当新增字段要求。所有版面都检查最多100个媒体，打包前保守限制195 MiB，最终ZIP不超过200 MiB。透明前景、视频容量等版面专属要求继续适用。
+
+交付必须使用统一打包入口；不要用裸 `zip` 命令跳过最后检查：
 
 ```bash
-cd <素材包目录>
-zip -r ../bundle.zip content.json manifest.json images videos -x '.*' -x '__MACOSX/*'
+python3 <skill 目录>/scripts/pack_bundle.py <素材包目录> <目录外的输出.zip> --layout landscape-editorial-motion-v1 --target-seconds 45
 ```
 
-zip 里不要放软链接，也不要放上面结构之外的其他文件。
-新横屏版打包后还要确认最终 ZIP 不超过 200 MiB；超过时压缩视频，再重新校验与打包。
+普通横屏使用 `--layout landscape-full-v1`；纯视频使用 `--layout landscape-footage-v1` 并传时长；竖屏省略版面参数。已有配音实测时长时传 `--narration-seconds`。保持用户选择，不为通过检查切换版面。
+
+打包入口创建独立副本，验证后生成ZIP，再解压最终ZIP复检；仅全部通过才返回 `status=passed`、`deliverable` 和 `sha256`。若打包失败，继续上述自主修复闭环。失败报告中的 `deliverable=null` 表示本轮没有可交付产物，不能把上一次留在磁盘上的旧ZIP交给用户。成功后若修改了任何内容，必须重新打包。
+
+只拿到复制提示词、缺少脚本或协议快照时，先按前文安装/更新方式补齐 Skill；人工核对不能替代程序通过。脚本本身无需第三方 Python 包，媒体检查依赖 ffmpeg/ffprobe。
+
+字段结构来自 Niwo 后端导出的 `references/bundle-submit.schema.json`；业务关联与媒体质量由本地校验器补充检查。维护与跨端验证方式见 [协议维护说明](references/protocol-maintenance.md)。
 
 ## 交付
 
@@ -453,7 +458,7 @@ Niwo 目前还在内测，没有账号的人上传不了，光给工作台地址
 ## 交付前自查
 
 - [ ] 开工前已把成片形态与文案要求一次问完，答案来自用户本次的回复，不是从记忆或历史偏好推断的；用了兜底默认值的已在回复里说明
-- [ ] `scripts/validate_bundle.py` 跑通、无报错
+- [ ] `scripts/pack_bundle.py` 返回 passed 和最终 ZIP 的 SHA-256；所有校验错误已由 Agent 修复并复检
 - [ ] `content.json` 与 `manifest.json` 都写了 `"schema_version": 1`
 - [ ] 素材取向与第零步确认的成片形态一致，并在 `notes` 里提醒用户在 Niwo 里选同一个形态
 - [ ] 选择任一横屏版面时，已用 `validate_bundle.py --layout <所选版面>` 逐条验收视频显示宽高

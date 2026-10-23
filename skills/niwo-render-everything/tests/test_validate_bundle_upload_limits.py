@@ -91,8 +91,8 @@ class EditorialUploadLimitTests(unittest.TestCase):
             validator.check_orphans(bundle, [], report, editorial_mode=True)
             self.assertTrue(any("videos/展台/clip.mp4" in error for error in report.errors))
 
-    def test_main_keeps_legacy_count_rule(self) -> None:
-        """普通包可保留原有 200 条清单规则，新包才检查 100 媒体。"""
+    def test_main_applies_upload_limit_to_all_layouts(self) -> None:
+        """普通包与信息动效包均遵守 Niwo 的 100 媒体限制。"""
         with tempfile.TemporaryDirectory() as directory:
             bundle = Path(directory)
             media_dir = bundle / "images"
@@ -110,9 +110,11 @@ class EditorialUploadLimitTests(unittest.TestCase):
             content_path.write_text(json.dumps(content), encoding="utf-8")
             with contextlib.redirect_stdout(io.StringIO()):
                 legacy_result = validator.main(["validate_bundle.py", str(bundle)])
-            self.assertEqual(legacy_result, 0)
+            self.assertEqual(legacy_result, 1)
 
-            content["editorial"] = {"prepared_for": validator.EDITORIAL_LAYOUT}
+            content["editorial"] = {"prepared_for": validator.EDITORIAL_LAYOUT,
+                "title_text": "测试", "title_anchor": "测试",
+                "segments": [{"id": "s1", "script_anchor": "测试", "role": "hook", "visual_goal": "展示测试"}]}
             content_path.write_text(json.dumps(content), encoding="utf-8")
             output = io.StringIO()
             with patch.object(validator, "check_editorial_bundle"), contextlib.redirect_stdout(output):

@@ -21,15 +21,21 @@ import sys
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from protocol_schema import LIMITS, SCHEMA, validate as validate_protocol
+
+_CONTENT = SCHEMA["$defs"]["BundleContent"]["properties"]
+_ASSET = SCHEMA["$defs"]["BundleManifestAsset"]["properties"]
+_MANIFEST = SCHEMA["$defs"]["BundleManifest"]["properties"]
+
 CONTENT_SCHEMA_VERSION = 1
 MANIFEST_SCHEMA_VERSION = 1
 
 PINYIN_PATTERN = re.compile(r"^[a-z]+[1-5]$")
 HEADLINE_HIGHLIGHT_PATTERN = re.compile(r"\[\[([^\[\]]+)\]\]")
 
-MAX_TITLE_CHARS = 120
-MAX_SCRIPT_CHARS = 6000
-MAX_NOTES_CHARS = 2000
+MAX_TITLE_CHARS = _CONTENT["title"]["maxLength"]
+MAX_SCRIPT_CHARS = _CONTENT["script"]["maxLength"]
+MAX_NOTES_CHARS = _CONTENT["notes"]["maxLength"]
 MAX_HEADLINE_LINES = 3
 # 标题带的容量是宽度而非字数：中日韩字符占满一个字宽，英文数字只占 0.56。
 NARROW_CHAR_WIDTH = 0.56
@@ -41,19 +47,19 @@ MAX_HIGHLIGHTS_PER_LINE = 2
 MAX_SUBHEADLINE_CHARS = 72
 MAX_SOURCE_ENTRY_WIDTH = 24.0
 MAX_SUMMARY_CHARS = 240
-MAX_LICENSE_CHARS = 128
-MAX_SOURCE_URL_CHARS = 2000
-MAX_SCRIPT_ANCHOR_CHARS = 512
-MAX_TAG_CHARS = 32
-MAX_TAGS = 8
-MAX_ENTRIES = 200
-MAX_IMAGE_BYTES = 25 * 1024 * 1024
-MAX_VIDEO_BYTES = 512 * 1024 * 1024
+MAX_LICENSE_CHARS = _ASSET["license"]["maxLength"]
+MAX_SOURCE_URL_CHARS = _ASSET["source_url"]["maxLength"]
+MAX_SCRIPT_ANCHOR_CHARS = _ASSET["script_anchor"]["maxLength"]
+MAX_TAG_CHARS = _ASSET["tags"]["items"]["maxLength"]
+MAX_TAGS = _ASSET["tags"]["maxItems"]
+MAX_ENTRIES = _MANIFEST["assets"]["maxItems"]
+MAX_IMAGE_BYTES = LIMITS["image_bytes_max"]
+MAX_VIDEO_BYTES = LIMITS["video_bytes_max"]
 EDITORIAL_LAYOUT = "landscape-editorial-motion-v1"
 FOOTAGE_LAYOUT = "landscape-footage-v1"
 LANDSCAPE_LAYOUT = "landscape-full-v1"
 LANDSCAPE_LAYOUTS = frozenset({LANDSCAPE_LAYOUT, FOOTAGE_LAYOUT, EDITORIAL_LAYOUT})
-EDITORIAL_MEDIA_FILES_MAX = 100
+EDITORIAL_MEDIA_FILES_MAX = LIMITS["media_files_max"]
 # Niwo 接收的 ZIP 上限是 200 MiB；打包前给压缩格式、文件名和目录项留 5 MiB 余量。
 EDITORIAL_SOURCE_BYTES_MAX = 195 * 1024 * 1024
 EDITORIAL_ROLES = frozenset({"hook", "title", "origin", "explain", "evidence", "contrast", "conclusion"})
@@ -393,7 +399,7 @@ def validate_content(content: dict[str, Any], report: Report) -> None:
     if "pronunciations" in content:
         check_pronunciations(content["pronunciations"], report)
 
-    if "hook_headline" in content:
+    if content.get("hook_headline") is not None:
         check_hook_headline(content["hook_headline"], report)
 
     if "sources" in content:
@@ -456,7 +462,13 @@ def validate_manifest(
             continue
         seen.add(cleaned)
 
+        if not cleaned.startswith(("images/", "videos/")):
+            report.error(f"{label}.file 必须位于 images/ 或 videos/ 下")
+            continue
         path = bundle_dir / cleaned
+        if path.is_symlink() or bundle_dir.resolve() not in path.resolve().parents:
+            report.error(f"{label}.file 不接受软链接或包外文件")
+            continue
         kind = _check_entry_kind(entry, cleaned, label, report)
         if not path.is_file():
             report.error(f"{label} 声明的文件不存在: {cleaned}")
@@ -532,12 +544,12 @@ def _check_entry_text(entry: dict[str, Any], label: str, report: Report) -> None
     if not tags:
         report.warn(f"{label} 没写 tags，summary 要配合 tags 才能替代视觉打标")
     if len(tags) > MAX_TAGS:
-        report.warn(f"{label} 有 {len(tags)} 个 tags，超过 {MAX_TAGS} 的会被丢弃")
+        report.error(f"{label} 有 {len(tags)} 个 tags，最多 {MAX_TAGS} 个；Agent 应保留最相关标签后复检")
     for tag in tags:
         if not isinstance(tag, str) or not tag.strip():
             report.error(f"{label} 的 tags 含空标签")
         elif len(tag) > MAX_TAG_CHARS:
-            report.warn(f"{label} 的标签 {tag!r} 超过 {MAX_TAG_CHARS} 字，会被截断")
+            report.error(f"{label} 的标签 {tag!r} 超过 {MAX_TAG_CHARS} 字；Agent 应精简标签后复检")
 
 
 def _check_entry_clip(
@@ -688,7 +700,7 @@ def check_videos(resolved: list[tuple[Path, dict[str, Any]]], report: Report) ->
     if not videos:
         return
     if shutil.which("ffprobe") is None:
-        report.warn("环境里没有 ffprobe，跳过视频时长与选段窗口检查")
+        report.error("环境里没有 ffprobe；Agent 应补齐运行环境后重新检查视频，不跳过验收")
         return
     for path, entry in videos:
         name = entry["file"]
@@ -727,13 +739,13 @@ def check_orphans(
         if not directory.is_dir():
             continue
         # 新横屏的 manifest 必须覆盖子目录素材；普通版面维持原有顶层提示范围。
-        paths = directory.rglob("*") if editorial_mode else directory.iterdir()
+        paths = directory.rglob("*")
         for path in sorted(paths):
             if not path.is_file() or path.name.startswith("."):
                 continue
             label = path.relative_to(bundle_dir).as_posix()
             if path.suffix.lower() not in IMAGE_EXTENSIONS | VIDEO_EXTENSIONS:
-                report.warn(f"{label} 不是支持的素材格式，会被忽略")
+                report.error(f"{label} 不是支持的素材格式，请移出媒体目录后复检")
             elif path.resolve() not in declared:
                 if editorial_mode:
                     report.error(f"{label} 没写进 manifest，新横屏版必须声明素材用途")
@@ -780,7 +792,7 @@ def check_editorial_upload_limits(bundle_dir: Path, report: Report) -> None:
     ]
     if len(media_files) > EDITORIAL_MEDIA_FILES_MAX:
         report.error(
-            f"新版横屏媒体文件有 {len(media_files)} 个，超过 Niwo 上传上限 "
+            f"素材包媒体文件有 {len(media_files)} 个，超过 Niwo 上传上限 "
             f"{EDITORIAL_MEDIA_FILES_MAX} 个；请合并或删去低价值镜头"
         )
     # 配乐、说明等附带文件也会进入 ZIP；只合计媒体会让上传时才发现超限。
@@ -788,7 +800,7 @@ def check_editorial_upload_limits(bundle_dir: Path, report: Report) -> None:
     total_bytes = sum(path.stat().st_size for path in package_files)
     if total_bytes > EDITORIAL_SOURCE_BYTES_MAX:
         report.error(
-            f"新版横屏待打包文件共 {total_bytes / 1024 / 1024:.1f} MiB，"
+            f"素材包待打包文件共 {total_bytes / 1024 / 1024:.1f} MiB，"
             f"超过打包前上限 {EDITORIAL_SOURCE_BYTES_MAX // 1024 // 1024} MiB；"
             "Niwo ZIP 上限为 200 MiB，请压缩视频并为 ZIP 开销留余量"
         )
@@ -946,14 +958,14 @@ def check_editorial_bundle(content: dict[str, Any], resolved: list[tuple[Path, d
         name = entry["file"]
         if entry.get("editorial") is None:
             if active:
-                report.error(f"{name} 缺少 editorial.role，新版面需区分视频底片与透明前景")
+                report.error(f"{name} 缺少 editorial.role，请按真实素材填写 footage、foreground 或 reference_image，并关联原文段落")
             continue
         if content.get("editorial") is None:
             report.error(f"{name} 声明了 editorial，但 content.editorial 缺失")
         metadata = _editorial_object(entry["editorial"], {"role", "subject", "segment_ids", "title_candidate", "derived_from", "focus"}, f"{name}.editorial", report)
         role = metadata.get("role")
-        if role not in ("footage", "foreground"):
-            report.error(f"{name}.editorial.role 必须是 footage 或 foreground")
+        if role not in ("footage", "foreground", "reference_image"):
+            report.error(f"{name}.editorial.role 必须是 footage、foreground 或 reference_image")
         if metadata.get("subject") is not None and (not isinstance(metadata["subject"], str) or len(metadata["subject"]) > EDITORIAL_TEXT_CHARS):
             report.error(f"{name}.editorial.subject 必须是最多 {EDITORIAL_TEXT_CHARS} 字符的字符串")
         if "title_candidate" in metadata and not isinstance(metadata["title_candidate"], bool):
@@ -987,12 +999,18 @@ def check_editorial_bundle(content: dict[str, Any], resolved: list[tuple[Path, d
             if duration is None or not _finite_number(duration):
                 report.error(f"{name} 有效时长未验收：ffprobe 不可用或视频无法读取")
                 continue
-            start, end = entry.get("clip_start_seconds", 0), entry.get("clip_end_seconds", duration)
+            start = entry.get("clip_start_seconds") or 0
+            end = entry.get("clip_end_seconds") if entry.get("clip_end_seconds") is not None else duration
             if not _finite_number(start) or not _finite_number(end) or not 0 <= start < end <= duration + 0.1:
                 report.error(f"{name} 的视频选段必须落在实际时长 {duration:.2f} 秒内")
                 continue
             capacity += min(end, duration) - start
             matched.update(identifiers)
+        if role == "reference_image":
+            if entry["kind"] != "image":
+                report.error(f"{name} 的 reference_image 必须是图片")
+            if metadata.get("derived_from") is not None:
+                report.error(f"{name} 的 reference_image 不声明视频派生关系")
         if role == "foreground":
             if entry["kind"] != "image" or path.suffix.lower() != ".png":
                 report.error(f"{name} 的 foreground 必须是带透明通道的 PNG")
@@ -1176,6 +1194,7 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--target-seconds", type=float, help="用户确认的目标秒数，仅用于备料估算")
     parser.add_argument("--narration-seconds", type=float, help="已生成口播的实测秒数")
     parser.add_argument("--layout", choices=sorted(LANDSCAPE_LAYOUTS), help="指定横屏版面并验收视频方向")
+    parser.add_argument("--json", action="store_true", help="输出供外部 Agent 修复与复检的结构化报告")
     arguments = parser.parse_args(argv[1:])
     for value in (arguments.target_seconds, arguments.narration_seconds):
         if value is not None and (not _finite_number(value) or value <= 0):
@@ -1187,6 +1206,18 @@ def main(argv: list[str]) -> int:
 
     report = Report()
     content = load_json(bundle_dir / "content.json", report)
+    manifest = load_json(bundle_dir / "manifest.json", report)
+    if content is not None and manifest is not None:
+        for error in validate_protocol({"content": content, "manifest": manifest}):
+            match = re.search(r"manifest\.assets\[(\d+)\]", error)
+            if match and isinstance(manifest.get("assets"), list):
+                entry = manifest["assets"][int(match.group(1))]
+                if isinstance(entry, dict):
+                    error += f"（素材 {entry.get('file', '未知')}）"
+            report.error(error)
+    # 类型不合法时不要继续执行面向正确类型的媒体与业务检查。
+    if report.errors:
+        return print_report(report, arguments.json)
     if content is not None:
         validate_content(content, report)
 
@@ -1200,7 +1231,6 @@ def main(argv: list[str]) -> int:
     selected_layout = arguments.layout or (declared_layout if isinstance(declared_layout, str) else None)
 
     resolved: list[tuple[Path, dict[str, Any]]] = []
-    manifest = load_json(bundle_dir / "manifest.json", report)
     if manifest is not None:
         resolved = validate_manifest(manifest, bundle_dir, report)
         check_videos(resolved, report)
@@ -1210,12 +1240,13 @@ def main(argv: list[str]) -> int:
         check_editorial_bundle(content, resolved, report, arguments.target_seconds, arguments.narration_seconds)
         if selected_layout == FOOTAGE_LAYOUT:
             check_footage_bundle(content, resolved, report, arguments.target_seconds, arguments.narration_seconds)
-        if content.get("editorial") is not None:
-            check_editorial_upload_limits(bundle_dir, report)
+    check_editorial_upload_limits(bundle_dir, report)
     check_orphans(bundle_dir, resolved, report,
                   editorial_mode=bool(selected_layout == FOOTAGE_LAYOUT or (content and content.get("editorial") is not None)))
     check_foreign_declarations(bundle_dir, report)
 
+    if arguments.json:
+        return print_report(report, True)
     images, videos = count_kinds(resolved)
     print(f"素材包: {bundle_dir}")
     if content is not None and isinstance(content.get("title"), str):
@@ -1225,19 +1256,25 @@ def main(argv: list[str]) -> int:
         script = content["script"]
         print(f"口播文案: {len(script)} 字；字数不等于真实口播时长")
 
-    for message in report.warnings:
-        print(f"[告警] {message}")
-    for message in report.errors:
-        print(f"[错误] {message}")
+    return print_report(report, False)
 
-    if report.errors:
-        print(f"\n校验未通过: {len(report.errors)} 个错误，改完再打包。")
-        return 1
-    if report.warnings:
-        print(f"\n校验通过，有 {len(report.warnings)} 条告警可以自行判断。")
+
+def print_report(report: Report, as_json: bool) -> int:
+    """Failure means repair and retry by the calling Agent, never deliver this pack."""
+    if as_json:
+        print(json.dumps({
+            "status": "repair_required" if report.errors else "passed",
+            "errors": [{"code": "bundle_validation_error", "message": error} for error in report.errors],
+            "warnings": report.warnings,
+            "next_action": "外部 Agent 自主修复上述文件/字段，使用相同版面和时长重新校验；通过前不得交付" if report.errors else "使用 pack_bundle.py 生成并复验最终 ZIP",
+        }, ensure_ascii=False))
     else:
-        print("\n校验通过。")
-    return 0
+        for message in report.warnings:
+            print(f"[告警] {message}")
+        for message in report.errors:
+            print(f"[错误] {message}")
+        print("\n校验未通过：外部 Agent 应自主修复并复检，不交付错误包。" if report.errors else "\n校验通过。")
+    return 1 if report.errors else 0
 
 
 if __name__ == "__main__":
